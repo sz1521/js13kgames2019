@@ -1,0 +1,20 @@
+{
+  "name": "js13kgames2019",
+  "version": "0.1.0",
+  "description": "An entry to js13kgames 2019 game programming competition",
+  "private": "true",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sz1521/js13kgames2019.git"
+  },
+  "keywords": [],
+  "author": "Sami Heikkinen, Tero Jäntti <tkjantti@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sz1521/js13kgames2019/issues"
+  },
+  "homepage": "https://github.com/sz1521/js13kgames2019#readme"
+}
