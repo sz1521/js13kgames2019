@@ -1,0 +1,32 @@
+{
+  "name": "js13kgames2019",
+  "version": "0.1.0",
+  "description": "An entry to js13kgames 2019 game programming competition",
+  "private": "true",
+  "scripts": {
+    "start": "webpack-dev-server --config webpack.dev.js",
+    "build": "webpack --config webpack.prod.js",
+    "postbuild": "node postbuild.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sz1521/js13kgames2019.git"
+  },
+  "keywords": ["game", "js13kgames"],
+  "author": "Sami Heikkinen, Tero Jäntti <tkjantti@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sz1521/js13kgames2019/issues"
+  },
+  "homepage": "https://github.com/sz1521/js13kgames2019#readme",
+  "devDependencies": {
+    "archiver": "^3.1.1",
+    "clean-webpack-plugin": "^3.0.0",
+    "html-webpack-inline-source-plugin": "0.0.10",
+    "html-webpack-plugin": "^3.2.0",
+    "webpack": "^4.39.2",
+    "webpack-cli": "^3.3.6",
+    "webpack-dev-server": "^3.8.0",
+    "webpack-merge": "^4.2.1"
+  }
+}
