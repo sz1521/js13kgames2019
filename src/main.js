@@ -23,10 +23,12 @@
  */
 import { init, Sprite, GameLoop, initKeys, keyPressed } from 'kontra';
 
-const playerSpeed = 10;
+const playerSpeed = 3;
 
-let { canvas } = init();
+let { canvas, context } = init();
 initKeys();
+
+let clouds = [];
 
 let player = Sprite({
   x: 100,
@@ -34,11 +36,14 @@ let player = Sprite({
   color: 'red',
   width: 20,
   height: 40,
-  dx: 2
 });
 
 let loop = GameLoop({
   update: function() {
+    for (let i = 0; i < clouds.length; i++) {
+      clouds[i].update();
+    }
+
     if (keyPressed('left') && player.x > 0) {
       player.x -= playerSpeed;
     } else if (keyPressed('right') && player.x < (canvas.width - player.width)) {
@@ -46,11 +51,53 @@ let loop = GameLoop({
     }
   },
   render: function() {
+    context.fillStyle = 'rgb(100,100,255)';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    for (let i = 0; i < clouds.length; i++) {
+      let cloud = clouds[i];
+      cloud.render();
+    }
+
     player.render();
   }
 });
 
-player.x = 0;
-player.y = canvas.height - player.height;
+function createCloud() {
+  return Sprite({
+    x: Math.random() * canvas.width,
+    y: Math.random() * 200,
+    color: 'white',
+    dx: 0.05 + Math.random() * 0.1,
+    radius: 20 + (Math.random() * Math.random()) * 70,
 
+    update: function () {
+      this.advance();
+      if ((this.x - this.radius) > canvas.width) {
+        this.x = -this.radius;
+      }
+    },
+
+    render: function() {
+      let cx = this.context;
+      cx.fillStyle = this.color;
+
+      cx.beginPath();
+      cx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+      cx.fill();
+    }
+  });
+}
+
+function initScene() {
+  player.x = 0;
+  player.y = canvas.height - player.height;
+
+  for (let i = 0; i < 25; i++) {
+    let cloud = createCloud();
+    clouds.push(cloud);
+  }
+}
+
+initScene();
 loop.start();
