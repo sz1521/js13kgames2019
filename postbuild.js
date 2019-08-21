@@ -1,6 +1,5 @@
 // Code from: https://github.com/sz-piotr/js13k-webpack-starter/blob/master/postbuild.js
 
-/* jshint node:true */
 const fs = require('fs');
 const archiver = require('archiver');
 
