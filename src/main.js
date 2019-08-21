@@ -21,12 +21,14 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+import { init, Sprite, GameLoop, initKeys, keyPressed } from 'kontra';
 
-import { init, Sprite, GameLoop } from 'kontra';
+const playerSpeed = 10;
 
 let { canvas } = init();
+initKeys();
 
-let sprite = Sprite({
+let player = Sprite({
   x: 100,
   y: 80,
   color: 'red',
@@ -37,14 +39,18 @@ let sprite = Sprite({
 
 let loop = GameLoop({
   update: function() {
-    sprite.update();
-    if (sprite.x > canvas.width) {
-      sprite.x = -sprite.width;
+    if (keyPressed('left') && player.x > 0) {
+      player.x -= playerSpeed;
+    } else if (keyPressed('right') && player.x < (canvas.width - player.width)) {
+      player.x += playerSpeed;
     }
   },
   render: function() {
-    sprite.render();
+    player.render();
   }
 });
+
+player.x = 0;
+player.y = canvas.height - player.height;
 
 loop.start();
