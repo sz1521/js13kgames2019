@@ -5,9 +5,10 @@
   "private": "true",
   "scripts": {
     "start": "webpack-dev-server --config webpack.dev.js",
+    "prebuild": "npm run lint",
     "build": "webpack --config webpack.prod.js",
     "postbuild": "node postbuild.js",
-    "lint": "npx eslint src/**/*.js"
+    "lint": "prettier --check \"src/**/*.js\" && npx eslint \"src/**/*.js\""
   },
   "repository": {
     "type": "git",
