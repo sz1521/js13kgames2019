@@ -21,11 +21,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-import { init, Sprite, GameLoop, initKeys, keyPressed } from 'kontra';
+import { init, Sprite, GameLoop, initKeys, keyPressed } from "kontra";
 
 const playerSpeed = 3;
 
 let { canvas, context } = init();
+
 initKeys();
 
 let clouds = [];
@@ -33,9 +34,9 @@ let clouds = [];
 let player = Sprite({
   x: 100,
   y: 80,
-  color: 'red',
+  color: "red",
   width: 20,
-  height: 40,
+  height: 40
 });
 
 let loop = GameLoop({
@@ -44,14 +45,14 @@ let loop = GameLoop({
       clouds[i].update();
     }
 
-    if (keyPressed('left') && player.x > 0) {
+    if (keyPressed("left") && player.x > 0) {
       player.x -= playerSpeed;
-    } else if (keyPressed('right') && player.x < (canvas.width - player.width)) {
+    } else if (keyPressed("right") && player.x < canvas.width - player.width) {
       player.x += playerSpeed;
     }
   },
   render: function() {
-    context.fillStyle = 'rgb(100,100,255)';
+    context.fillStyle = "rgb(100,100,255)";
     context.fillRect(0, 0, canvas.width, canvas.height);
 
     for (let i = 0; i < clouds.length; i++) {
@@ -67,13 +68,13 @@ function createCloud() {
   return Sprite({
     x: Math.random() * canvas.width,
     y: Math.random() * 200,
-    color: 'white',
+    color: "white",
     dx: 0.05 + Math.random() * 0.1,
-    radius: 20 + (Math.random() * Math.random()) * 70,
+    radius: 20 + Math.random() * Math.random() * 70,
 
-    update: function () {
+    update: function() {
       this.advance();
-      if ((this.x - this.radius) > canvas.width) {
+      if (this.x - this.radius > canvas.width) {
         this.x = -this.radius;
       }
     },
