@@ -66,14 +66,14 @@ const createCloud = () => {
     dx: 0.05 + Math.random() * 0.1,
     radius: 20 + Math.random() * Math.random() * 70,
 
-    update: function () {
+    update: function() {
       this.advance();
       if (this.x - this.radius > canvas.width) {
         this.x = -this.radius;
       }
     },
 
-    render: function () {
+    render: function() {
       let cx = this.context;
       cx.fillStyle = this.color;
 
@@ -82,7 +82,7 @@ const createCloud = () => {
       cx.fill();
     }
   });
-}
+};
 
 const initScene = () => {
   canvas.width = window.innerWidth - 10;
@@ -103,11 +103,11 @@ const initScene = () => {
     let cloud = createCloud();
     clouds.push(cloud);
   }
-}
+};
 
 const sleep = time => {
-  return new Promise((resolve) => setTimeout(resolve, time));
-}
+  return new Promise(resolve => setTimeout(resolve, time));
+};
 
 let resizing = false;
 
@@ -121,8 +121,9 @@ const resize = () => {
       resizing = false;
     });
   }
-}
-window.addEventListener('resize', resize, false); resize();
+};
+window.addEventListener("resize", resize, false);
+resize();
 
 initScene();
 loop.start();
