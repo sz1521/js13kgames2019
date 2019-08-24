@@ -24,7 +24,8 @@
 import { init, Sprite, GameLoop, initKeys, keyPressed } from "kontra";
 
 const playerSpeed = 3;
-const gravity = 5;
+const gravity = 2;
+const jumpVelocity = -30;
 
 let { canvas, context } = init();
 
@@ -142,22 +143,35 @@ const createPlayer = () => {
     color: "red",
     width: canvas.height / 20,
     height: canvas.height / 10,
+    vel: 0, // Vertical velocity, affected by jumping and gravity
+    jumping: false,
 
     update: function() {
+      let dx = 0;
+      let dy = 0;
+
       if (keyPressed("left") && this.x > 0) {
-        this.x -= playerSpeed;
+        dx = -playerSpeed;
       } else if (keyPressed("right") && this.x < canvas.width - this.width) {
-        this.x += playerSpeed;
+        dx = playerSpeed;
       }
 
-      if (keyPressed("up")) {
-        this.y -= 5;
-      } else {
-        this.y += gravity;
+      if (!this.jumping && keyPressed("up")) {
+        this.vel = jumpVelocity;
+        this.jumping = true;
       }
 
-      if (this.y > canvas.height - this.height) {
+      this.vel += gravity;
+      dy += this.vel;
+
+      this.x += dx;
+
+      if (this.y + dy > canvas.height - this.height) {
         this.y = canvas.height - this.height;
+        this.vel = 0;
+        this.jumping = false;
+      } else {
+        this.y += dy;
       }
     }
   });
@@ -169,7 +183,7 @@ const initScene = () => {
 
   player = createPlayer();
   player.x = 30;
-  player.y = 0;
+  player.y = canvas.height / 2 - player.height;
 
   clouds = [];
   for (let i = 0; i < 25; i++) {
