@@ -26,12 +26,18 @@ import { init, Sprite, GameLoop, initKeys, keyPressed } from "kontra";
 const playerSpeed = 3;
 const gravity = 2;
 const jumpVelocity = -30;
+const climbSpeed = 2;
+
+const STATE_ON_GROUND = 0;
+const STATE_JUMPING = 1;
+const STATE_CLIMBING = 2;
 
 let { canvas, context } = init();
 
 initKeys();
 
 let clouds = [];
+let ladders = [];
 
 let player;
 
@@ -50,6 +56,11 @@ let loop = GameLoop({
     for (let i = 0; i < clouds.length; i++) {
       let cloud = clouds[i];
       cloud.render();
+    }
+
+    for (let i = 0; i < ladders.length; i++) {
+      let ladder = ladders[i];
+      ladder.render();
     }
 
     player.render();
@@ -144,7 +155,7 @@ const createPlayer = () => {
     width: canvas.height / 20,
     height: canvas.height / 10,
     vel: 0, // Vertical velocity, affected by jumping and gravity
-    jumping: false,
+    state: STATE_ON_GROUND,
 
     update: function() {
       let dx = 0;
@@ -156,20 +167,44 @@ const createPlayer = () => {
         dx = playerSpeed;
       }
 
-      if (!this.jumping && keyPressed("up")) {
-        this.vel = jumpVelocity;
-        this.jumping = true;
+      let canClimb = false;
+      for (let i = 0; i < ladders.length; i++) {
+        let ladder = ladders[i];
+        if (ladder.collidesWith(player)) {
+          canClimb = true;
+        }
       }
 
-      this.vel += gravity;
-      dy += this.vel;
+      if (!canClimb && this.state === STATE_CLIMBING) {
+        this.state = STATE_ON_GROUND;
+      }
+
+      if (keyPressed("up")) {
+        if (canClimb) {
+          this.state = STATE_CLIMBING;
+          this.vel = 0;
+          dy -= climbSpeed;
+        } else if (this.state !== STATE_JUMPING) {
+          this.vel = jumpVelocity;
+          this.state = STATE_JUMPING;
+        }
+      } else if (keyPressed("down") && canClimb) {
+        this.state = STATE_CLIMBING;
+        this.vel = 0;
+        dy += climbSpeed;
+      }
+
+      if (this.state !== STATE_CLIMBING) {
+        this.vel += gravity;
+        dy += this.vel;
+      }
 
       this.x += dx;
 
       if (this.y + dy > canvas.height - this.height) {
         this.y = canvas.height - this.height;
         this.vel = 0;
-        this.jumping = false;
+        this.state = STATE_ON_GROUND;
       } else {
         this.y += dy;
       }
@@ -177,9 +212,23 @@ const createPlayer = () => {
   });
 };
 
+const createLadder = () => {
+  return Sprite({
+    color: "gray",
+    width: canvas.height / 20,
+    height: canvas.height,
+    x: 0,
+    y: 0
+  });
+};
+
 const initScene = () => {
   canvas.width = window.innerWidth - 10;
   canvas.height = window.innerHeight - 10;
+
+  let ladder = createLadder();
+  ladder.x = canvas.width / 2;
+  ladders.push(ladder);
 
   player = createPlayer();
   player.x = 30;
