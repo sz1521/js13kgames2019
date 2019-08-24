@@ -157,6 +157,11 @@ const createPlayer = () => {
     vel: 0, // Vertical velocity, affected by jumping and gravity
     state: STATE_ON_GROUND,
 
+    isOnGround: function() {
+      const margin = 5;
+      return this.y + this.height > canvas.height - margin;
+    },
+
     update: function() {
       let dx = 0;
       let dy = 0;
@@ -184,7 +189,7 @@ const createPlayer = () => {
           this.state = STATE_CLIMBING;
           this.vel = 0;
           dy -= climbSpeed;
-        } else if (this.state !== STATE_JUMPING) {
+        } else if (this.state !== STATE_JUMPING && this.isOnGround()) {
           this.vel = jumpVelocity;
           this.state = STATE_JUMPING;
         }
