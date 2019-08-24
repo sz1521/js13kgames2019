@@ -3,6 +3,13 @@
   <head>
     <meta charset="utf-8">
     <style>
+      * { margin:0; padding:0; }
+
+      html, body {
+          margin: 0 !important;
+          padding: 0 !important;
+          overflow: hidden;
+      }
       body {
         background-color: black;
       }
@@ -10,16 +17,13 @@
         border: 5px solid white;
       }
       #board {
-        width: 640px;
-        height: 480px;
         margin: auto;
       }
     </style>
   </head>
-
   <body>
     <div id="board">
-      <canvas width="640" height="480"></canvas>
+      <canvas />
     </div>
   </body>
 </html>

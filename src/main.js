@@ -31,16 +31,10 @@ initKeys();
 
 let clouds = [];
 
-let player = Sprite({
-  x: 100,
-  y: 80,
-  color: "red",
-  width: 20,
-  height: 40
-});
+let player;
 
 let loop = GameLoop({
-  update: function() {
+  update: () => {
     for (let i = 0; i < clouds.length; i++) {
       clouds[i].update();
     }
@@ -51,7 +45,7 @@ let loop = GameLoop({
       player.x += playerSpeed;
     }
   },
-  render: function() {
+  render: () => {
     context.fillStyle = "rgb(100,100,255)";
     context.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -64,22 +58,22 @@ let loop = GameLoop({
   }
 });
 
-function createCloud() {
+const createCloud = () => {
   return Sprite({
     x: Math.random() * canvas.width,
     y: Math.random() * 200,
-    color: "white",
+    color: "#f8ffffff",
     dx: 0.05 + Math.random() * 0.1,
     radius: 20 + Math.random() * Math.random() * 70,
 
-    update: function() {
+    update: function () {
       this.advance();
       if (this.x - this.radius > canvas.width) {
         this.x = -this.radius;
       }
     },
 
-    render: function() {
+    render: function () {
       let cx = this.context;
       cx.fillStyle = this.color;
 
@@ -90,15 +84,45 @@ function createCloud() {
   });
 }
 
-function initScene() {
+const initScene = () => {
+  canvas.width = window.innerWidth - 10;
+  canvas.height = window.innerHeight - 10;
+
+  player = Sprite({
+    x: 100,
+    y: 80,
+    color: "red",
+    width: canvas.height / 20,
+    height: canvas.height / 10
+  });
   player.x = 0;
   player.y = canvas.height - player.height;
 
+  clouds = [];
   for (let i = 0; i < 25; i++) {
     let cloud = createCloud();
     clouds.push(cloud);
   }
 }
+
+const sleep = time => {
+  return new Promise((resolve) => setTimeout(resolve, time));
+}
+
+let resizing = false;
+
+const resize = () => {
+  if (!resizing) {
+    resizing = true;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    sleep(300).then(() => {
+      initScene();
+      resizing = false;
+    });
+  }
+}
+window.addEventListener('resize', resize, false); resize();
 
 initScene();
 loop.start();
