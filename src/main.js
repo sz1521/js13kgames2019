@@ -24,6 +24,7 @@
 import { init, Sprite, GameLoop, initKeys, keyPressed } from "kontra";
 
 const playerSpeed = 3;
+const gravity = 5;
 
 let { canvas, context } = init();
 
@@ -39,11 +40,7 @@ let loop = GameLoop({
       clouds[i].update();
     }
 
-    if (keyPressed("left") && player.x > 0) {
-      player.x -= playerSpeed;
-    } else if (keyPressed("right") && player.x < canvas.width - player.width) {
-      player.x += playerSpeed;
-    }
+    player.update();
   },
   render: () => {
     context.fillStyle = "rgb(100,100,255)";
@@ -140,19 +137,39 @@ const createCloud = () => {
   });
 };
 
+const createPlayer = () => {
+  return Sprite({
+    color: "red",
+    width: canvas.height / 20,
+    height: canvas.height / 10,
+
+    update: function() {
+      if (keyPressed("left") && this.x > 0) {
+        this.x -= playerSpeed;
+      } else if (keyPressed("right") && this.x < canvas.width - this.width) {
+        this.x += playerSpeed;
+      }
+
+      if (keyPressed("up")) {
+        this.y -= 5;
+      } else {
+        this.y += gravity;
+      }
+
+      if (this.y > canvas.height - this.height) {
+        this.y = canvas.height - this.height;
+      }
+    }
+  });
+};
+
 const initScene = () => {
   canvas.width = window.innerWidth - 10;
   canvas.height = window.innerHeight - 10;
 
-  player = Sprite({
-    x: 100,
-    y: 80,
-    color: "red",
-    width: canvas.height / 20,
-    height: canvas.height / 10
-  });
-  player.x = 0;
-  player.y = canvas.height - player.height;
+  player = createPlayer();
+  player.x = 30;
+  player.y = 0;
 
   clouds = [];
   for (let i = 0; i < 25; i++) {
