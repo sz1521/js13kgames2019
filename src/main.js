@@ -44,8 +44,36 @@ let player;
 let level = {
   left: 0,
   top: 0,
-  width: 800,
-  height: 800
+  width: 1200,
+  height: 1000
+};
+
+let camera = {
+  x: 0,
+  y: 0,
+
+  update: function() {
+    let newX, newY;
+
+    newX = player.x;
+    newY = player.y;
+
+    if (newX - canvas.width / 2 < level.left) {
+      newX = level.left + canvas.width / 2;
+    }
+    if (level.width < newX + canvas.width / 2) {
+      newX = level.width - canvas.width / 2;
+    }
+    if (newY - canvas.height / 2 < level.top) {
+      newY = level.top + canvas.height / 2;
+    }
+    if (level.height < newY + canvas.height / 2) {
+      newY = level.height - canvas.height / 2;
+    }
+
+    this.x = newX;
+    this.y = newY;
+  }
 };
 
 let loop = GameLoop({
@@ -55,10 +83,18 @@ let loop = GameLoop({
     }
 
     player.update();
+
+    camera.update();
   },
   render: () => {
     context.fillStyle = "rgb(100,100,255)";
     context.fillRect(0, 0, canvas.width, canvas.height);
+
+    context.save();
+    context.translate(
+      canvas.width / 2 - camera.x,
+      canvas.height / 2 - camera.y
+    );
 
     for (let i = 0; i < clouds.length; i++) {
       let cloud = clouds[i];
@@ -74,6 +110,8 @@ let loop = GameLoop({
       beacons[i].render();
     }
     player.render();
+
+    context.restore();
   }
 });
 
