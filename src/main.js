@@ -38,9 +38,17 @@ initKeys();
 
 let clouds = [];
 let ladders = [];
+let beacons = [];
 let player;
 
 let rendering = false;
+
+let level = {
+  left: 0,
+  top: 0,
+  width: 800,
+  height: 800
+};
 
 let loop = GameLoop({
   update: () => {
@@ -64,13 +72,16 @@ let loop = GameLoop({
       ladder.render();
     }
 
+    for (let i = 0; i < beacons.length; i++) {
+      beacons[i].render();
+    }
     player.render();
   }
 });
 
 const createCloud = () => {
   return Sprite({
-    x: Math.random() * canvas.width,
+    x: Math.random() * level.width,
     y: Math.random() * 200,
     color: "white",
     opacity: 0.95,
@@ -79,7 +90,7 @@ const createCloud = () => {
 
     update: function() {
       this.advance();
-      if (this.x - 300 > canvas.width) {
+      if (this.x - 300 > level.width) {
         this.x = -300;
       }
     },
@@ -153,14 +164,14 @@ const createCloud = () => {
 const createPlayer = () => {
   return Sprite({
     color: "red",
-    width: canvas.height / 20,
-    height: canvas.height / 10,
+    width: 40,
+    height: 60,
     vel: 0, // Vertical velocity, affected by jumping and gravity
     state: STATE_ON_GROUND,
 
     isOnGround: function() {
       const margin = 5;
-      return this.y + this.height > canvas.height - margin;
+      return this.y + this.height > level.height - margin;
     },
 
     update: function() {
@@ -169,7 +180,7 @@ const createPlayer = () => {
 
       if (keyPressed("left") && this.x > 0) {
         dx = -playerSpeed;
-      } else if (keyPressed("right") && this.x < canvas.width - this.width) {
+      } else if (keyPressed("right") && this.x < level.width - this.width) {
         dx = playerSpeed;
       }
 
@@ -207,8 +218,8 @@ const createPlayer = () => {
 
       this.x += dx;
 
-      if (this.y + dy > canvas.height - this.height) {
-        this.y = canvas.height - this.height;
+      if (this.y + dy > level.height - this.height) {
+        this.y = level.height - this.height;
         this.vel = 0;
         this.state = STATE_ON_GROUND;
       } else {
@@ -221,10 +232,8 @@ const createPlayer = () => {
 const createLadder = () => {
   return Sprite({
     color: "gray",
-    width: canvas.height / 20,
-    height: canvas.height,
-    x: 0,
-    y: 0
+    width: 30,
+    height: level.height
   });
 };
 
@@ -233,18 +242,49 @@ const initScene = () => {
   renderScene();
 };
 
+function createBeacon() {
+  return Sprite({
+    color: "yellow",
+    width: 50,
+    height: 50
+  });
+}
+
 const renderScene = () => {
   if (rendering) {
     canvas.width = window.innerWidth - 10;
     canvas.height = window.innerHeight - 10;
+
     ladders = [];
     let ladder = createLadder();
-    ladder.x = canvas.width / 2;
+    ladder.x = level.width / 2;
+    ladder.y = level.top;
+
     ladders.push(ladder);
+
+    let topLeft = createBeacon();
+    topLeft.x = level.left;
+    topLeft.y = level.top;
+    beacons.push(topLeft);
+
+    let topRight = createBeacon();
+    topRight.x = level.width - topRight.width;
+    topRight.y = level.top;
+    beacons.push(topRight);
+
+    let bottomLeft = createBeacon();
+    bottomLeft.x = level.left;
+    bottomLeft.y = level.height - bottomLeft.height;
+    beacons.push(bottomLeft);
+
+    let bottomRight = createBeacon();
+    bottomRight.x = level.width - bottomRight.width;
+    bottomRight.y = level.height - bottomRight.height;
+    beacons.push(bottomRight);
 
     player = createPlayer();
     player.x = 30;
-    player.y = canvas.height / 2 - player.height;
+    player.y = level.height / 2 - player.height;
 
     clouds = [];
     for (let i = 0; i < 25; i++) {
