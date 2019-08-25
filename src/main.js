@@ -41,8 +41,6 @@ let ladders = [];
 let beacons = [];
 let player;
 
-let rendering = false;
-
 let level = {
   left: 0,
   top: 0,
@@ -237,11 +235,6 @@ const createLadder = () => {
   });
 };
 
-const initScene = () => {
-  rendering = true;
-  renderScene();
-};
-
 function createBeacon() {
   return Sprite({
     color: "yellow",
@@ -250,63 +243,49 @@ function createBeacon() {
   });
 }
 
-const renderScene = () => {
-  if (rendering) {
-    canvas.width = window.innerWidth - 10;
-    canvas.height = window.innerHeight - 10;
+const initScene = () => {
+  ladders = [];
+  let ladder = createLadder();
+  ladder.x = level.width / 2;
+  ladder.y = level.top;
+  ladders.push(ladder);
 
-    ladders = [];
-    let ladder = createLadder();
-    ladder.x = level.width / 2;
-    ladder.y = level.top;
+  let topLeft = createBeacon();
+  topLeft.x = level.left;
+  topLeft.y = level.top;
+  beacons.push(topLeft);
 
-    ladders.push(ladder);
+  let topRight = createBeacon();
+  topRight.x = level.width - topRight.width;
+  topRight.y = level.top;
+  beacons.push(topRight);
 
-    let topLeft = createBeacon();
-    topLeft.x = level.left;
-    topLeft.y = level.top;
-    beacons.push(topLeft);
+  let bottomLeft = createBeacon();
+  bottomLeft.x = level.left;
+  bottomLeft.y = level.height - bottomLeft.height;
+  beacons.push(bottomLeft);
 
-    let topRight = createBeacon();
-    topRight.x = level.width - topRight.width;
-    topRight.y = level.top;
-    beacons.push(topRight);
+  let bottomRight = createBeacon();
+  bottomRight.x = level.width - bottomRight.width;
+  bottomRight.y = level.height - bottomRight.height;
+  beacons.push(bottomRight);
 
-    let bottomLeft = createBeacon();
-    bottomLeft.x = level.left;
-    bottomLeft.y = level.height - bottomLeft.height;
-    beacons.push(bottomLeft);
+  player = createPlayer();
+  player.x = 30;
+  player.y = level.height / 2 - player.height;
 
-    let bottomRight = createBeacon();
-    bottomRight.x = level.width - bottomRight.width;
-    bottomRight.y = level.height - bottomRight.height;
-    beacons.push(bottomRight);
-
-    player = createPlayer();
-    player.x = 30;
-    player.y = level.height / 2 - player.height;
-
-    clouds = [];
-    for (let i = 0; i < 25; i++) {
-      let cloud = createCloud();
-      clouds.push(cloud);
-    }
-    rendering = false;
+  clouds = [];
+  for (let i = 0; i < 25; i++) {
+    let cloud = createCloud();
+    clouds.push(cloud);
   }
-};
-
-const sleep = time => {
-  return new Promise(resolve => setTimeout(resolve, time));
 };
 
 const resize = () => {
-  if (!rendering) {
-    rendering = true;
-    sleep(600).then(() => {
-      renderScene();
-    });
-  }
+  canvas.width = window.innerWidth - 10;
+  canvas.height = window.innerHeight - 10;
 };
+
 window.addEventListener("resize", resize, false);
 resize();
 
