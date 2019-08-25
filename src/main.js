@@ -40,7 +40,40 @@ let clouds = [];
 let ladders = [];
 let player;
 
-let rendering = false;
+let level = {
+  left: 0,
+  top: 0,
+  width: 1200,
+  height: 1000
+};
+
+let camera = {
+  x: 0,
+  y: 0,
+
+  update: function() {
+    let newX, newY;
+
+    newX = player.x;
+    newY = player.y;
+
+    if (newX - canvas.width / 2 < level.left) {
+      newX = level.left + canvas.width / 2;
+    }
+    if (level.width < newX + canvas.width / 2) {
+      newX = level.width - canvas.width / 2;
+    }
+    if (newY - canvas.height / 2 < level.top) {
+      newY = level.top + canvas.height / 2;
+    }
+    if (level.height < newY + canvas.height / 2) {
+      newY = level.height - canvas.height / 2;
+    }
+
+    this.x = newX;
+    this.y = newY;
+  }
+};
 
 let loop = GameLoop({
   update: () => {
@@ -49,10 +82,18 @@ let loop = GameLoop({
     }
 
     player.update();
+
+    camera.update();
   },
   render: () => {
     context.fillStyle = "rgb(100,100,255)";
     context.fillRect(0, 0, canvas.width, canvas.height);
+
+    context.save();
+    context.translate(
+      canvas.width / 2 - camera.x,
+      canvas.height / 2 - camera.y
+    );
 
     for (let i = 0; i < clouds.length; i++) {
       let cloud = clouds[i];
@@ -65,12 +106,14 @@ let loop = GameLoop({
     }
 
     player.render();
+
+    context.restore();
   }
 });
 
 const createCloud = () => {
   return Sprite({
-    x: Math.random() * canvas.width,
+    x: Math.random() * level.width,
     y: Math.random() * 200,
     color: "white",
     opacity: 0.95,
@@ -79,7 +122,7 @@ const createCloud = () => {
 
     update: function() {
       this.advance();
-      if (this.x - 300 > canvas.width) {
+      if (this.x - 300 > level.width) {
         this.x = -300;
       }
     },
@@ -153,14 +196,14 @@ const createCloud = () => {
 const createPlayer = () => {
   return Sprite({
     color: "red",
-    width: canvas.height / 20,
-    height: canvas.height / 10,
+    width: 40,
+    height: 60,
     vel: 0, // Vertical velocity, affected by jumping and gravity
     state: STATE_ON_GROUND,
 
     isOnGround: function() {
       const margin = 5;
-      return this.y + this.height > canvas.height - margin;
+      return this.y + this.height > level.height - margin;
     },
 
     update: function() {
@@ -169,7 +212,7 @@ const createPlayer = () => {
 
       if (keyPressed("left") && this.x > 0) {
         dx = -playerSpeed;
-      } else if (keyPressed("right") && this.x < canvas.width - this.width) {
+      } else if (keyPressed("right") && this.x < level.width - this.width) {
         dx = playerSpeed;
       }
 
@@ -207,8 +250,8 @@ const createPlayer = () => {
 
       this.x += dx;
 
-      if (this.y + dy > canvas.height - this.height) {
-        this.y = canvas.height - this.height;
+      if (this.y + dy > level.height - this.height) {
+        this.y = level.height - this.height;
         this.vel = 0;
         this.state = STATE_ON_GROUND;
       } else {
@@ -221,52 +264,34 @@ const createPlayer = () => {
 const createLadder = () => {
   return Sprite({
     color: "gray",
-    width: canvas.height / 20,
-    height: canvas.height,
-    x: 0,
-    y: 0
+    width: 30,
+    height: level.height
   });
 };
 
 const initScene = () => {
-  rendering = true;
-  renderScene();
-};
+  ladders = [];
+  let ladder = createLadder();
+  ladder.x = level.width / 2;
+  ladder.y = level.top;
+  ladders.push(ladder);
 
-const renderScene = () => {
-  if (rendering) {
-    canvas.width = window.innerWidth - 10;
-    canvas.height = window.innerHeight - 10;
-    ladders = [];
-    let ladder = createLadder();
-    ladder.x = canvas.width / 2;
-    ladders.push(ladder);
+  player = createPlayer();
+  player.x = 30;
+  player.y = level.height / 2 - player.height;
 
-    player = createPlayer();
-    player.x = 30;
-    player.y = canvas.height / 2 - player.height;
-
-    clouds = [];
-    for (let i = 0; i < 25; i++) {
-      let cloud = createCloud();
-      clouds.push(cloud);
-    }
-    rendering = false;
+  clouds = [];
+  for (let i = 0; i < 25; i++) {
+    let cloud = createCloud();
+    clouds.push(cloud);
   }
-};
-
-const sleep = time => {
-  return new Promise(resolve => setTimeout(resolve, time));
 };
 
 const resize = () => {
-  if (!rendering) {
-    rendering = true;
-    sleep(600).then(() => {
-      renderScene();
-    });
-  }
+  canvas.width = window.innerWidth - 10;
+  canvas.height = window.innerHeight - 10;
 };
+
 window.addEventListener("resize", resize, false);
 resize();
 
