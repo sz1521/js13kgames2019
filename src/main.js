@@ -38,8 +38,9 @@ initKeys();
 
 let clouds = [];
 let ladders = [];
-
 let player;
+
+let rendering = false;
 
 let loop = GameLoop({
   update: () => {
@@ -228,21 +229,29 @@ const createLadder = () => {
 };
 
 const initScene = () => {
-  canvas.width = window.innerWidth - 10;
-  canvas.height = window.innerHeight - 10;
+  rendering = true;
+  renderScene();
+};
 
-  let ladder = createLadder();
-  ladder.x = canvas.width / 2;
-  ladders.push(ladder);
+const renderScene = () => {
+  if (rendering) {
+    canvas.width = window.innerWidth - 10;
+    canvas.height = window.innerHeight - 10;
+    ladders = [];
+    let ladder = createLadder();
+    ladder.x = canvas.width / 2;
+    ladders.push(ladder);
 
-  player = createPlayer();
-  player.x = 30;
-  player.y = canvas.height / 2 - player.height;
+    player = createPlayer();
+    player.x = 30;
+    player.y = canvas.height / 2 - player.height;
 
-  clouds = [];
-  for (let i = 0; i < 25; i++) {
-    let cloud = createCloud();
-    clouds.push(cloud);
+    clouds = [];
+    for (let i = 0; i < 25; i++) {
+      let cloud = createCloud();
+      clouds.push(cloud);
+    }
+    rendering = false;
   }
 };
 
@@ -250,16 +259,11 @@ const sleep = time => {
   return new Promise(resolve => setTimeout(resolve, time));
 };
 
-let resizing = false;
-
 const resize = () => {
-  if (!resizing) {
-    resizing = true;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    sleep(300).then(() => {
-      initScene();
-      resizing = false;
+  if (!rendering) {
+    rendering = true;
+    sleep(600).then(() => {
+      renderScene();
     });
   }
 };
