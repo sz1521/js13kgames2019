@@ -52,24 +52,29 @@ let level = {
 let camera = {
   x: 0,
   y: 0,
+  zoom: 1,
 
   update: function() {
     let newX, newY;
 
-    newX = player.x;
-    newY = player.y;
+    newX = player.x + player.width;
+    newY = player.y + player.height;
 
-    if (newX - canvas.width / 2 < level.left) {
-      newX = level.left + canvas.width / 2;
+    const viewAreaWidth = canvas.width / this.zoom;
+    const viewAreaHeight = canvas.height / this.zoom;
+
+    // Keep camera within level in x-direction.
+    if (newX - viewAreaWidth / 2 < level.left) {
+      newX = level.left + viewAreaWidth / 2;
+    } else if (newX + viewAreaWidth / 2 > level.width) {
+      newX = level.width - viewAreaWidth / 2;
     }
-    if (level.width < newX + canvas.width / 2) {
-      newX = level.width - canvas.width / 2;
-    }
-    if (newY - canvas.height / 2 < level.top) {
-      newY = level.top + canvas.height / 2;
-    }
-    if (level.height < newY + canvas.height / 2) {
-      newY = level.height - canvas.height / 2;
+
+    // Keep camera within level in y-direction.
+    if (newY - viewAreaHeight / 2 < level.top) {
+      newY = level.top + viewAreaHeight / 2;
+    } else if (newY + viewAreaHeight / 2 > level.height) {
+      newY = level.height - viewAreaHeight / 2;
     }
 
     this.x = newX;
@@ -93,10 +98,9 @@ let loop = GameLoop({
     context.fillRect(0, 0, canvas.width, canvas.height);
 
     context.save();
-    context.translate(
-      canvas.width / 2 - camera.x,
-      canvas.height / 2 - camera.y
-    );
+    context.translate(canvas.width / 2, canvas.height / 2);
+    context.scale(camera.zoom, camera.zoom);
+    context.translate(-camera.x, -camera.y);
 
     for (let i = 0; i < clouds0.length; i++) {
       let cloud0 = clouds0[i];
@@ -289,7 +293,7 @@ const createCloud = z => {
 const createPlayer = () => {
   return Sprite({
     color: "red",
-    width: 40,
+    width: 50,
     height: 60,
     vel: 0, // Vertical velocity, affected by jumping and gravity
     state: STATE_ON_GROUND,
@@ -383,24 +387,46 @@ const initScene = () => {
   ladder.y = level.top;
   ladders.push(ladder);
 
-  let topLeft = createBeacon();
-  topLeft.x = level.left;
-  topLeft.y = level.top;
-  beacons.push(topLeft);
+  // let topLeft = createBeacon();
+  // topLeft.x = level.left;
+  // topLeft.y = level.top;
+  // beacons.push(topLeft);
 
-  let topRight = createBeacon();
-  topRight.x = level.width - topRight.width;
-  topRight.y = level.top;
-  beacons.push(topRight);
+  // let topRight = createBeacon();
+  // topRight.x = level.width - topRight.width;
+  // topRight.y = level.top;
+  // beacons.push(topRight);
+
+  let top = createBeacon();
+  top.color = "orange";
+  top.width = level.width;
+  top.height = 50;
+  top.x = level.left;
+  top.y = level.top;
+  beacons.push(top);
+
+  let bottom = createBeacon();
+  bottom.color = "orange";
+  bottom.width = level.width;
+  bottom.height = 50;
+  bottom.x = level.left;
+  bottom.y = level.height - bottom.height;
+  beacons.push(bottom);
 
   let bottomLeft = createBeacon();
+  bottomLeft.color = "green";
   bottomLeft.x = level.left;
-  bottomLeft.y = level.height - bottomLeft.height;
+  bottomLeft.height = level.height / 2;
+  //bottomLeft.y = level.height - bottomLeft.height;
+  bottomLeft.y = level.height / 2;
   beacons.push(bottomLeft);
 
   let bottomRight = createBeacon();
+  bottomRight.color = "green";
   bottomRight.x = level.width - bottomRight.width;
-  bottomRight.y = level.height - bottomRight.height;
+  bottomRight.height = level.height / 2;
+  // bottomRight.y = level.height - bottomRight.height;
+  bottomRight.y = level.height / 2;
   beacons.push(bottomRight);
 
   player = createPlayer();
