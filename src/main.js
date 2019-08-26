@@ -39,6 +39,7 @@ initKeys();
 let clouds0 = [];
 let clouds1 = [];
 let ladders = [];
+let beacons = [];
 let player;
 
 let level = {
@@ -107,6 +108,9 @@ let loop = GameLoop({
       ladder.render();
     }
 
+    for (let i = 0; i < beacons.length; i++) {
+      beacons[i].render();
+    }
     player.render();
 
     for (let i = 0; i < clouds1.length; i++) {
@@ -358,6 +362,14 @@ const createLadder = () => {
   });
 };
 
+function createBeacon() {
+  return Sprite({
+    color: "yellow",
+    width: 50,
+    height: 50
+  });
+}
+
 const initScene = () => {
   clouds0 = [];
   for (let i = 0; i < 20; i++) {
@@ -370,6 +382,26 @@ const initScene = () => {
   ladder.x = level.width / 2;
   ladder.y = level.top;
   ladders.push(ladder);
+
+  let topLeft = createBeacon();
+  topLeft.x = level.left;
+  topLeft.y = level.top;
+  beacons.push(topLeft);
+
+  let topRight = createBeacon();
+  topRight.x = level.width - topRight.width;
+  topRight.y = level.top;
+  beacons.push(topRight);
+
+  let bottomLeft = createBeacon();
+  bottomLeft.x = level.left;
+  bottomLeft.y = level.height - bottomLeft.height;
+  beacons.push(bottomLeft);
+
+  let bottomRight = createBeacon();
+  bottomRight.x = level.width - bottomRight.width;
+  bottomRight.y = level.height - bottomRight.height;
+  beacons.push(bottomRight);
 
   player = createPlayer();
   player.x = 30;
