@@ -60,6 +60,17 @@ let camera = {
     newX = player.x + player.width;
     newY = player.y + player.height;
 
+    const zoomedWidth = level.width * this.zoom;
+    const zoomedHeight = level.height * this.zoom;
+
+    // Zoom such that camera stays within the level.
+    if (zoomedWidth < canvas.width || zoomedHeight < canvas.height) {
+      this.zoom = Math.max(
+        canvas.width / level.width,
+        canvas.height / level.height
+      );
+    }
+
     const viewAreaWidth = canvas.width / this.zoom;
     const viewAreaHeight = canvas.height / this.zoom;
 
