@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-import { init, Sprite, GameLoop, initKeys, keyPressed } from "kontra";
+import { init, Sprite, GameLoop, bindKeys, initKeys, keyPressed } from "kontra";
 
 const playerSpeed = 3;
 const gravity = 2;
@@ -483,4 +483,14 @@ window.addEventListener("resize", resize, false);
 resize();
 
 initScene();
+
+// Keys for debugging
+bindKeys(["1"], () => {
+  camera.zoom = 1;
+  camera.mode = CAMERA_MODE_FOLLOW_PLAYER;
+});
+bindKeys(["2"], () => {
+  camera.mode = CAMERA_MODE_SHOW_WHOLE_LEVEL;
+});
+
 loop.start();
