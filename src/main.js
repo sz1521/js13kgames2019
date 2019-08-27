@@ -32,6 +32,9 @@ const STATE_ON_GROUND = 0;
 const STATE_JUMPING = 1;
 const STATE_CLIMBING = 2;
 
+const CAMERA_MODE_FOLLOW_PLAYER = 0;
+const CAMERA_MODE_SHOW_WHOLE_LEVEL = 1;
+
 let { canvas, context } = init();
 
 initKeys();
@@ -46,15 +49,27 @@ let level = {
   left: 0,
   top: 0,
   width: 1200,
-  height: 1000
+  height: 1500
 };
 
 let camera = {
   x: 0,
   y: 0,
   zoom: 1,
+  mode: CAMERA_MODE_FOLLOW_PLAYER,
 
-  update: function() {
+  zoomToLevel: function() {
+    this.x = level.left + level.width / 2;
+    this.y = level.top + level.height / 2;
+
+    if (level.width / level.height >= canvas.width / canvas.height) {
+      this.zoom = canvas.width / level.width;
+    } else {
+      this.zoom = canvas.height / level.height;
+    }
+  },
+
+  followPlayer() {
     let newX, newY;
 
     newX = player.x + player.width;
@@ -90,6 +105,14 @@ let camera = {
 
     this.x = newX;
     this.y = newY;
+  },
+
+  update: function() {
+    if (this.mode === CAMERA_MODE_SHOW_WHOLE_LEVEL) {
+      this.zoomToLevel();
+    } else {
+      this.followPlayer();
+    }
   }
 };
 
