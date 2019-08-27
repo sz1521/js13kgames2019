@@ -126,6 +126,7 @@ let loop = GameLoop({
 
     camera.update();
   },
+
   render: () => {
     context.fillStyle = "rgb(100,100,255)";
     context.fillRect(0, 0, canvas.width, canvas.height);
@@ -150,6 +151,21 @@ let loop = GameLoop({
     for (let i = 0; i < clouds1.length; i++) {
       let cloud1 = clouds1[i];
       cloud1.render();
+    }
+
+    // Draw level borders for debugging
+    if (camera.mode === CAMERA_MODE_SHOW_WHOLE_LEVEL) {
+      context.save();
+      context.strokeStyle = "red";
+      context.lineWidth = 5;
+      context.beginPath();
+      context.lineTo(0, 0);
+      context.lineTo(level.width, 0);
+      context.lineTo(level.width, level.height);
+      context.lineTo(0, level.height);
+      context.closePath();
+      context.stroke();
+      context.restore();
     }
 
     context.restore();
