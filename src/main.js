@@ -39,6 +39,8 @@ let { canvas, context } = init();
 
 initKeys();
 
+let playerImage;
+
 let clouds0 = [];
 let clouds1 = [];
 let ladders = [];
@@ -349,6 +351,10 @@ const createPlayer = () => {
       return this.y + this.height > level.height - margin;
     },
 
+    render: function() {
+      this.context.drawImage(playerImage, this.x, this.y);
+    },
+
     update: function() {
       let dx = 0;
       let dy = 0;
@@ -460,6 +466,14 @@ const resize = () => {
   canvas.height = window.innerHeight - 10;
 };
 
+const loadImage = path => {
+  return new Promise(resolve => {
+    let image = new Image();
+    image.src = path;
+    image.onload = () => resolve(image);
+  });
+};
+
 window.addEventListener("resize", resize, false);
 resize();
 
@@ -474,4 +488,6 @@ bindKeys(["2"], () => {
   camera.mode = CAMERA_MODE_SHOW_WHOLE_LEVEL;
 });
 
-loop.start();
+loadImage("images/player.svg")
+  .then(image => (playerImage = image))
+  .then(() => loop.start());
