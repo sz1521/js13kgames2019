@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-import { init, Sprite, GameLoop, initKeys, keyPressed } from "kontra";
+import { init, Sprite, GameLoop, bindKeys, initKeys, keyPressed } from "kontra";
 
 const playerSpeed = 3;
 const gravity = 2;
@@ -31,6 +31,9 @@ const climbSpeed = 2;
 const STATE_ON_GROUND = 0;
 const STATE_JUMPING = 1;
 const STATE_CLIMBING = 2;
+
+const CAMERA_MODE_FOLLOW_PLAYER = 0;
+const CAMERA_MODE_SHOW_WHOLE_LEVEL = 1;
 
 let { canvas, context } = init();
 
@@ -45,34 +48,70 @@ let level = {
   left: 0,
   top: 0,
   width: 1200,
-  height: 1000
+  height: 1500
 };
 
 let camera = {
   x: 0,
   y: 0,
+  zoom: 1,
+  mode: CAMERA_MODE_FOLLOW_PLAYER,
 
-  update: function() {
+  zoomToLevel: function() {
+    this.x = level.left + level.width / 2;
+    this.y = level.top + level.height / 2;
+
+    if (level.width / level.height >= canvas.width / canvas.height) {
+      this.zoom = canvas.width / level.width;
+    } else {
+      this.zoom = canvas.height / level.height;
+    }
+  },
+
+  followPlayer() {
     let newX, newY;
 
-    newX = player.x;
-    newY = player.y;
+    newX = player.x + player.width;
+    newY = player.y + player.height;
 
-    if (newX - canvas.width / 2 < level.left) {
-      newX = level.left + canvas.width / 2;
+    const zoomedWidth = level.width * this.zoom;
+    const zoomedHeight = level.height * this.zoom;
+
+    // Zoom such that camera stays within the level.
+    if (zoomedWidth < canvas.width || zoomedHeight < canvas.height) {
+      this.zoom = Math.max(
+        canvas.width / level.width,
+        canvas.height / level.height
+      );
     }
-    if (level.width < newX + canvas.width / 2) {
-      newX = level.width - canvas.width / 2;
+
+    const viewAreaWidth = canvas.width / this.zoom;
+    const viewAreaHeight = canvas.height / this.zoom;
+
+    // Keep camera within level in x-direction.
+    if (newX - viewAreaWidth / 2 < level.left) {
+      newX = level.left + viewAreaWidth / 2;
+    } else if (newX + viewAreaWidth / 2 > level.width) {
+      newX = level.width - viewAreaWidth / 2;
     }
-    if (newY - canvas.height / 2 < level.top) {
-      newY = level.top + canvas.height / 2;
-    }
-    if (level.height < newY + canvas.height / 2) {
-      newY = level.height - canvas.height / 2;
+
+    // Keep camera within level in y-direction.
+    if (newY - viewAreaHeight / 2 < level.top) {
+      newY = level.top + viewAreaHeight / 2;
+    } else if (newY + viewAreaHeight / 2 > level.height) {
+      newY = level.height - viewAreaHeight / 2;
     }
 
     this.x = newX;
     this.y = newY;
+  },
+
+  update: function() {
+    if (this.mode === CAMERA_MODE_SHOW_WHOLE_LEVEL) {
+      this.zoomToLevel();
+    } else {
+      this.followPlayer();
+    }
   }
 };
 
@@ -87,15 +126,15 @@ let loop = GameLoop({
 
     camera.update();
   },
+
   render: () => {
     context.fillStyle = "rgb(100,100,255)";
     context.fillRect(0, 0, canvas.width, canvas.height);
 
     context.save();
-    context.translate(
-      canvas.width / 2 - camera.x,
-      canvas.height / 2 - camera.y
-    );
+    context.translate(canvas.width / 2, canvas.height / 2);
+    context.scale(camera.zoom, camera.zoom);
+    context.translate(-camera.x, -camera.y);
 
     for (let i = 0; i < clouds0.length; i++) {
       let cloud0 = clouds0[i];
@@ -114,15 +153,30 @@ let loop = GameLoop({
       cloud1.render();
     }
 
+    // Draw level borders for debugging
+    if (camera.mode === CAMERA_MODE_SHOW_WHOLE_LEVEL) {
+      context.save();
+      context.strokeStyle = "red";
+      context.lineWidth = 5;
+      context.beginPath();
+      context.lineTo(0, 0);
+      context.lineTo(level.width, 0);
+      context.lineTo(level.width, level.height);
+      context.lineTo(0, level.height);
+      context.closePath();
+      context.stroke();
+      context.restore();
+    }
+
     context.restore();
   }
 });
 
-const createCloud = z => {
+const createCloud = (y, z) => {
   if (z === 0) {
     return Sprite({
-      x: Math.random() * level.width - level.width / 4,
-      y: Math.random() * 200,
+      x: Math.random() * level.width * (5 / 4) - level.width / 4,
+      y: y + (Math.random() * 200 - 102120),
       color: "white",
       opacity: 0.95,
       dx: 0.07 + Math.random() * 0.1,
@@ -201,8 +255,8 @@ const createCloud = z => {
     });
   } else {
     return Sprite({
-      x: Math.random() * level.width - level.width / 4,
-      y: Math.random() * 200,
+      x: Math.random() * level.width * (5 / 4) - level.width / 4,
+      y: y + (Math.random() * 200 - 100),
       color: "white",
       opacity: 0.7,
       dx: 0.05 + Math.random() * 0.1,
@@ -285,7 +339,7 @@ const createCloud = z => {
 const createPlayer = () => {
   return Sprite({
     color: "red",
-    width: 40,
+    width: 50,
     height: 60,
     vel: 0, // Vertical velocity, affected by jumping and gravity
     state: STATE_ON_GROUND,
@@ -354,16 +408,41 @@ const createLadder = () => {
   return Sprite({
     color: "gray",
     width: 30,
-    height: level.height
+    height: level.height,
+
+    render: function() {
+      const stepGap = 30;
+      const stepCount = this.height / stepGap;
+      let cx = this.context;
+      cx.save();
+      cx.fillStyle = this.color;
+
+      for (let i = 0; i < stepCount; i++) {
+        cx.fillRect(this.x, this.y + i * stepGap, this.width, 6);
+      }
+
+      cx.restore();
+    }
   });
+};
+
+const createCloudLayer = y => {
+  for (let i = 0; i < 20; i++) {
+    let cloud0 = createCloud(y, 0);
+    clouds0.push(cloud0);
+  }
+
+  for (let i = 0; i < 20; i++) {
+    let cloud1 = createCloud(y, 1);
+    clouds1.push(cloud1);
+  }
 };
 
 const initScene = () => {
   clouds0 = [];
-  for (let i = 0; i < 20; i++) {
-    let cloud0 = createCloud(0);
-    clouds0.push(cloud0);
-  }
+  clouds1 = [];
+  createCloudLayer(200);
+  createCloudLayer(650);
 
   ladders = [];
   let ladder = createLadder();
@@ -374,12 +453,6 @@ const initScene = () => {
   player = createPlayer();
   player.x = 30;
   player.y = level.height / 2 - player.height;
-
-  clouds1 = [];
-  for (let i = 0; i < 20; i++) {
-    let cloud1 = createCloud(1);
-    clouds1.push(cloud1);
-  }
 };
 
 const resize = () => {
@@ -391,4 +464,14 @@ window.addEventListener("resize", resize, false);
 resize();
 
 initScene();
+
+// Keys for debugging
+bindKeys(["1"], () => {
+  camera.zoom = 1;
+  camera.mode = CAMERA_MODE_FOLLOW_PLAYER;
+});
+bindKeys(["2"], () => {
+  camera.mode = CAMERA_MODE_SHOW_WHOLE_LEVEL;
+});
+
 loop.start();
