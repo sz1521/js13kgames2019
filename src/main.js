@@ -408,7 +408,21 @@ const createLadder = () => {
   return Sprite({
     color: "gray",
     width: 30,
-    height: level.height
+    height: level.height,
+
+    render: function() {
+      const stepGap = 30;
+      const stepCount = this.height / stepGap;
+      let cx = this.context;
+      cx.save();
+      cx.fillStyle = this.color;
+
+      for (let i = 0; i < stepCount; i++) {
+        cx.fillRect(this.x, this.y + i * stepGap, this.width, 6);
+      }
+
+      cx.restore();
+    }
   });
 };
 
