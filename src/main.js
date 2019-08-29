@@ -39,11 +39,12 @@ let { canvas, context } = init();
 
 initKeys();
 
-let playerImage;
+let playerImage, houseImage;
 
 let clouds0 = [];
 let clouds1 = [];
 let ladders = [];
+let backgroundObjects = [];
 let player;
 
 let level = {
@@ -141,6 +142,11 @@ let loop = GameLoop({
     for (let i = 0; i < clouds0.length; i++) {
       let cloud0 = clouds0[i];
       cloud0.render();
+    }
+
+    for (let i = 0; i < backgroundObjects.length; i++) {
+      let object = backgroundObjects[i];
+      object.render();
     }
 
     for (let i = 0; i < ladders.length; i++) {
@@ -450,6 +456,20 @@ const initScene = () => {
   createCloudLayer(200);
   createCloudLayer(650);
 
+  backgroundObjects = [];
+
+  let house = Sprite({
+    width: 80,
+    height: 150,
+
+    render: function() {
+      this.context.drawImage(houseImage, this.x, this.y);
+    }
+  });
+  house.x = 400;
+  house.y = level.height - house.height;
+  backgroundObjects.push(house);
+
   ladders = [];
   let ladder = createLadder();
   ladder.x = level.width / 2;
@@ -488,6 +508,7 @@ bindKeys(["2"], () => {
   camera.mode = CAMERA_MODE_SHOW_WHOLE_LEVEL;
 });
 
-loadImage("images/player.svg")
-  .then(image => (playerImage = image))
-  .then(() => loop.start());
+Promise.all([
+  loadImage("images/player.svg").then(image => (playerImage = image)),
+  loadImage("images/house.svg").then(image => (houseImage = image))
+]).then(() => loop.start());
