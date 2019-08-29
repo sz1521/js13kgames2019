@@ -172,11 +172,11 @@ let loop = GameLoop({
   }
 });
 
-const createCloud = z => {
+const createCloud = (y, z) => {
   if (z === 0) {
     return Sprite({
-      x: Math.random() * level.width - level.width / 4,
-      y: Math.random() * 200,
+      x: Math.random() * level.width * (5 / 4) - level.width / 4,
+      y: y + (Math.random() * 200 - 102120),
       color: "white",
       opacity: 0.95,
       dx: 0.07 + Math.random() * 0.1,
@@ -255,8 +255,8 @@ const createCloud = z => {
     });
   } else {
     return Sprite({
-      x: Math.random() * level.width - level.width / 4,
-      y: Math.random() * 200,
+      x: Math.random() * level.width * (5 / 4) - level.width / 4,
+      y: y + (Math.random() * 200 - 100),
       color: "white",
       opacity: 0.7,
       dx: 0.05 + Math.random() * 0.1,
@@ -426,12 +426,23 @@ const createLadder = () => {
   });
 };
 
-const initScene = () => {
-  clouds0 = [];
+const createCloudLayer = y => {
   for (let i = 0; i < 20; i++) {
-    let cloud0 = createCloud(0);
+    let cloud0 = createCloud(y, 0);
     clouds0.push(cloud0);
   }
+
+  for (let i = 0; i < 20; i++) {
+    let cloud1 = createCloud(y, 1);
+    clouds1.push(cloud1);
+  }
+};
+
+const initScene = () => {
+  clouds0 = [];
+  clouds1 = [];
+  createCloudLayer(200);
+  createCloudLayer(650);
 
   ladders = [];
   let ladder = createLadder();
@@ -442,12 +453,6 @@ const initScene = () => {
   player = createPlayer();
   player.x = 30;
   player.y = level.height / 2 - player.height;
-
-  clouds1 = [];
-  for (let i = 0; i < 20; i++) {
-    let cloud1 = createCloud(1);
-    clouds1.push(cloud1);
-  }
 };
 
 const resize = () => {
