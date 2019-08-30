@@ -489,8 +489,8 @@ const resize = () => {
 const loadImage = path => {
   return new Promise(resolve => {
     let image = new Image();
-    image.src = path;
     image.onload = () => resolve(image);
+    image.src = path;
   });
 };
 
