@@ -22,6 +22,7 @@
  * SOFTWARE.
  */
 import { init, Sprite, GameLoop, bindKeys, initKeys } from "kontra";
+import { createCamera } from "./camera.js";
 import { createPlayer } from "./player.js";
 import playerSvg from "./images/player.svg";
 import houseSvg from "./images/house.svg";
@@ -33,9 +34,6 @@ const imageFromSvg = svgString => {
   image.src = base64Header + svgInBase64;
   return image;
 };
-
-const CAMERA_MODE_FOLLOW_PLAYER = 0;
-const CAMERA_MODE_SHOW_WHOLE_LEVEL = 1;
 
 let { canvas, context } = init();
 
@@ -57,69 +55,7 @@ let level = {
   height: 1500
 };
 
-let camera = {
-  x: 0,
-  y: 0,
-  zoom: 1,
-  mode: CAMERA_MODE_FOLLOW_PLAYER,
-
-  zoomToLevel: function() {
-    this.x = level.left + level.width / 2;
-    this.y = level.top + level.height / 2;
-
-    if (level.width / level.height >= canvas.width / canvas.height) {
-      this.zoom = canvas.width / level.width;
-    } else {
-      this.zoom = canvas.height / level.height;
-    }
-  },
-
-  followPlayer() {
-    let newX, newY;
-
-    newX = player.x + player.width;
-    newY = player.y + player.height;
-
-    const zoomedWidth = level.width * this.zoom;
-    const zoomedHeight = level.height * this.zoom;
-
-    // Zoom such that camera stays within the level.
-    if (zoomedWidth < canvas.width || zoomedHeight < canvas.height) {
-      this.zoom = Math.max(
-        canvas.width / level.width,
-        canvas.height / level.height
-      );
-    }
-
-    const viewAreaWidth = canvas.width / this.zoom;
-    const viewAreaHeight = canvas.height / this.zoom;
-
-    // Keep camera within level in x-direction.
-    if (newX - viewAreaWidth / 2 < level.left) {
-      newX = level.left + viewAreaWidth / 2;
-    } else if (newX + viewAreaWidth / 2 > level.width) {
-      newX = level.width - viewAreaWidth / 2;
-    }
-
-    // Keep camera within level in y-direction.
-    if (newY - viewAreaHeight / 2 < level.top) {
-      newY = level.top + viewAreaHeight / 2;
-    } else if (newY + viewAreaHeight / 2 > level.height) {
-      newY = level.height - viewAreaHeight / 2;
-    }
-
-    this.x = newX;
-    this.y = newY;
-  },
-
-  update: function() {
-    if (this.mode === CAMERA_MODE_SHOW_WHOLE_LEVEL) {
-      this.zoomToLevel();
-    } else {
-      this.followPlayer();
-    }
-  }
-};
+let camera = createCamera(level, canvas);
 
 const isPlayerOnLadders = () => {
   for (let i = 0; i < ladders.length; i++) {
@@ -176,7 +112,7 @@ let loop = GameLoop({
     }
 
     // Draw level borders for debugging
-    if (camera.mode === CAMERA_MODE_SHOW_WHOLE_LEVEL) {
+    if (!camera.target) {
       context.save();
       context.strokeStyle = "red";
       context.lineWidth = 5;
@@ -421,6 +357,8 @@ const initScene = () => {
   player = createPlayer(level, playerImage);
   player.x = 30;
   player.y = level.height / 2 - player.height;
+
+  camera.follow(player);
 };
 
 const resize = () => {
@@ -435,11 +373,10 @@ initScene();
 
 // Keys for debugging
 bindKeys(["1"], () => {
-  camera.zoom = 1;
-  camera.mode = CAMERA_MODE_FOLLOW_PLAYER;
+  camera.follow(player);
 });
 bindKeys(["2"], () => {
-  camera.mode = CAMERA_MODE_SHOW_WHOLE_LEVEL;
+  camera.zoomToLevel();
 });
 
 loop.start();
