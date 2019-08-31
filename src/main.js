@@ -22,6 +22,16 @@
  * SOFTWARE.
  */
 import { init, Sprite, GameLoop, bindKeys, initKeys, keyPressed } from "kontra";
+import playerSvg from "./images/player.svg";
+import houseSvg from "./images/house.svg";
+
+const imageFromSvg = svgString => {
+  let image = new Image();
+  const svgInBase64 = btoa(svgString);
+  const base64Header = "data:image/svg+xml;base64,";
+  image.src = base64Header + svgInBase64;
+  return image;
+};
 
 const playerSpeed = 3;
 const gravity = 2;
@@ -39,7 +49,8 @@ let { canvas, context } = init();
 
 initKeys();
 
-let playerImage, houseImage;
+let playerImage = imageFromSvg(playerSvg);
+let houseImage = imageFromSvg(houseSvg);
 
 let clouds0 = [];
 let clouds1 = [];
@@ -486,14 +497,6 @@ const resize = () => {
   canvas.height = window.innerHeight - 10;
 };
 
-const loadImage = path => {
-  return new Promise(resolve => {
-    let image = new Image();
-    image.onload = () => resolve(image);
-    image.src = path;
-  });
-};
-
 window.addEventListener("resize", resize, false);
 resize();
 
@@ -508,7 +511,4 @@ bindKeys(["2"], () => {
   camera.mode = CAMERA_MODE_SHOW_WHOLE_LEVEL;
 });
 
-Promise.all([
-  loadImage("images/player.svg").then(image => (playerImage = image)),
-  loadImage("images/house.svg").then(image => (houseImage = image))
-]).then(() => loop.start());
+loop.start();

@@ -1,36 +1,43 @@
-const path = require('path');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin');
+const path = require("path");
+const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const HtmlWebpackInlineSourcePlugin = require("html-webpack-inline-source-plugin");
 
-const isProduction = process.env.npm_lifecycle_event === 'build';
+const isProduction = process.env.npm_lifecycle_event === "build";
 
 module.exports = {
-  entry: './src/main.js',
+  entry: "./src/main.js",
   plugins: [
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
-      title: 'js13k Game',
-      template: 'src/index.html',
+      title: "js13k Game",
+      template: "src/index.html",
       minify: isProduction && {
         collapseWhitespace: true,
         minifyCSS: true,
-        removeComments: true,
+        removeComments: true
       },
-      inlineSource: isProduction && '\.(js|css)$',
+      inlineSource: isProduction && ".(js|css)$"
     }),
-    new HtmlWebpackInlineSourcePlugin(),
+    new HtmlWebpackInlineSourcePlugin()
   ],
   output: {
-    filename: 'bundle.js',
-    path: path.resolve(__dirname, 'dist'),
+    filename: "bundle.js",
+    path: path.resolve(__dirname, "dist")
   },
   module: {
     rules: [
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        loader: 'eslint-loader',
+        loader: "eslint-loader"
+      },
+      {
+        test: /\.svg$/,
+        loader: "svg-inline-loader",
+        options: {
+          removeSVGTagAttrs: false
+        }
       }
     ]
   }
