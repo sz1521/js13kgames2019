@@ -21,7 +21,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-import { init, Sprite, GameLoop, bindKeys, initKeys, keyPressed } from "kontra";
+import { init, Sprite, GameLoop, bindKeys, initKeys } from "kontra";
+import { createCamera } from "./camera.js";
+import { createPlayer } from "./player.js";
 import playerSvg from "./images/player.svg";
 import houseSvg from "./images/house.svg";
 
@@ -32,18 +34,6 @@ const imageFromSvg = svgString => {
   image.src = base64Header + svgInBase64;
   return image;
 };
-
-const playerSpeed = 3;
-const gravity = 2;
-const jumpVelocity = -30;
-const climbSpeed = 2;
-
-const STATE_ON_GROUND = 0;
-const STATE_JUMPING = 1;
-const STATE_CLIMBING = 2;
-
-const CAMERA_MODE_FOLLOW_PLAYER = 0;
-const CAMERA_MODE_SHOW_WHOLE_LEVEL = 1;
 
 let { canvas, context } = init();
 
@@ -65,68 +55,17 @@ let level = {
   height: 1500
 };
 
-let camera = {
-  x: 0,
-  y: 0,
-  zoom: 1,
-  mode: CAMERA_MODE_FOLLOW_PLAYER,
+let camera = createCamera(level, canvas);
 
-  zoomToLevel: function() {
-    this.x = level.left + level.width / 2;
-    this.y = level.top + level.height / 2;
-
-    if (level.width / level.height >= canvas.width / canvas.height) {
-      this.zoom = canvas.width / level.width;
-    } else {
-      this.zoom = canvas.height / level.height;
-    }
-  },
-
-  followPlayer() {
-    let newX, newY;
-
-    newX = player.x + player.width;
-    newY = player.y + player.height;
-
-    const zoomedWidth = level.width * this.zoom;
-    const zoomedHeight = level.height * this.zoom;
-
-    // Zoom such that camera stays within the level.
-    if (zoomedWidth < canvas.width || zoomedHeight < canvas.height) {
-      this.zoom = Math.max(
-        canvas.width / level.width,
-        canvas.height / level.height
-      );
-    }
-
-    const viewAreaWidth = canvas.width / this.zoom;
-    const viewAreaHeight = canvas.height / this.zoom;
-
-    // Keep camera within level in x-direction.
-    if (newX - viewAreaWidth / 2 < level.left) {
-      newX = level.left + viewAreaWidth / 2;
-    } else if (newX + viewAreaWidth / 2 > level.width) {
-      newX = level.width - viewAreaWidth / 2;
-    }
-
-    // Keep camera within level in y-direction.
-    if (newY - viewAreaHeight / 2 < level.top) {
-      newY = level.top + viewAreaHeight / 2;
-    } else if (newY + viewAreaHeight / 2 > level.height) {
-      newY = level.height - viewAreaHeight / 2;
-    }
-
-    this.x = newX;
-    this.y = newY;
-  },
-
-  update: function() {
-    if (this.mode === CAMERA_MODE_SHOW_WHOLE_LEVEL) {
-      this.zoomToLevel();
-    } else {
-      this.followPlayer();
+const isPlayerOnLadders = () => {
+  for (let i = 0; i < ladders.length; i++) {
+    let ladder = ladders[i];
+    if (ladder.collidesWith(player)) {
+      return true;
     }
   }
+
+  return false;
 };
 
 let loop = GameLoop({
@@ -136,7 +75,7 @@ let loop = GameLoop({
       clouds1[i].update();
     }
 
-    player.update();
+    player.update(isPlayerOnLadders());
 
     camera.update();
   },
@@ -173,7 +112,7 @@ let loop = GameLoop({
     }
 
     // Draw level borders for debugging
-    if (camera.mode === CAMERA_MODE_SHOW_WHOLE_LEVEL) {
+    if (!camera.target) {
       context.save();
       context.strokeStyle = "red";
       context.lineWidth = 5;
@@ -355,78 +294,6 @@ const createCloud = (y, z) => {
   }
 };
 
-const createPlayer = () => {
-  return Sprite({
-    color: "red",
-    width: 50,
-    height: 150,
-    vel: 0, // Vertical velocity, affected by jumping and gravity
-    state: STATE_ON_GROUND,
-
-    isOnGround: function() {
-      const margin = 5;
-      return this.y + this.height > level.height - margin;
-    },
-
-    render: function() {
-      this.context.drawImage(playerImage, this.x, this.y);
-    },
-
-    update: function() {
-      let dx = 0;
-      let dy = 0;
-
-      if (keyPressed("left") && this.x > 0) {
-        dx = -playerSpeed;
-      } else if (keyPressed("right") && this.x < level.width - this.width) {
-        dx = playerSpeed;
-      }
-
-      let canClimb = false;
-      for (let i = 0; i < ladders.length; i++) {
-        let ladder = ladders[i];
-        if (ladder.collidesWith(player)) {
-          canClimb = true;
-        }
-      }
-
-      if (!canClimb && this.state === STATE_CLIMBING) {
-        this.state = STATE_ON_GROUND;
-      }
-
-      if (keyPressed("up")) {
-        if (canClimb) {
-          this.state = STATE_CLIMBING;
-          this.vel = 0;
-          dy -= climbSpeed;
-        } else if (this.state !== STATE_JUMPING && this.isOnGround()) {
-          this.vel = jumpVelocity;
-          this.state = STATE_JUMPING;
-        }
-      } else if (keyPressed("down") && canClimb) {
-        this.state = STATE_CLIMBING;
-        this.vel = 0;
-        dy += climbSpeed;
-      }
-
-      if (this.state !== STATE_CLIMBING) {
-        this.vel += gravity;
-        dy += this.vel;
-      }
-
-      this.x += dx;
-
-      if (this.y + dy > level.height - this.height) {
-        this.y = level.height - this.height;
-        this.vel = 0;
-        this.state = STATE_ON_GROUND;
-      } else {
-        this.y += dy;
-      }
-    }
-  });
-};
-
 const createLadder = () => {
   return Sprite({
     color: "gray",
@@ -487,9 +354,11 @@ const initScene = () => {
   ladder.y = level.top;
   ladders.push(ladder);
 
-  player = createPlayer();
+  player = createPlayer(level, playerImage);
   player.x = 30;
   player.y = level.height / 2 - player.height;
+
+  camera.follow(player);
 };
 
 const resize = () => {
@@ -504,11 +373,10 @@ initScene();
 
 // Keys for debugging
 bindKeys(["1"], () => {
-  camera.zoom = 1;
-  camera.mode = CAMERA_MODE_FOLLOW_PLAYER;
+  camera.follow(player);
 });
 bindKeys(["2"], () => {
-  camera.mode = CAMERA_MODE_SHOW_WHOLE_LEVEL;
+  camera.zoomToLevel();
 });
 
 loop.start();
