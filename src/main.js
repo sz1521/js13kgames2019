@@ -45,6 +45,7 @@ let houseImage = imageFromSvg(houseSvg);
 let clouds0 = [];
 let clouds1 = [];
 let ladders = [];
+let platforms = [];
 let backgroundObjects = [];
 let player;
 
@@ -102,6 +103,10 @@ let loop = GameLoop({
     for (let i = 0; i < ladders.length; i++) {
       let ladder = ladders[i];
       ladder.render();
+    }
+
+    for (let i = 0; i < platforms.length; i++) {
+      platforms[i].render();
     }
 
     player.render();
@@ -316,6 +321,14 @@ const createLadder = () => {
   });
 };
 
+const createPlatform = () => {
+  return Sprite({
+    color: "green",
+    width: 200,
+    height: 30
+  });
+};
+
 const createCloudLayer = y => {
   for (let i = 0; i < 20; i++) {
     let cloud0 = createCloud(y, 0);
@@ -344,7 +357,7 @@ const initScene = () => {
       this.context.drawImage(houseImage, this.x, this.y);
     }
   });
-  house.x = 400;
+  house.x = 800;
   house.y = level.height - house.height;
   backgroundObjects.push(house);
 
@@ -354,9 +367,15 @@ const initScene = () => {
   ladder.y = level.top;
   ladders.push(ladder);
 
+  platforms = [];
+  let platform = createPlatform();
+  platform.x = 300;
+  platform.y = level.height - 100;
+  platforms.push(platform);
+
   player = createPlayer(level, playerImage);
-  player.x = 30;
-  player.y = level.height / 2 - player.height;
+  player.x = 200;
+  player.y = level.height - player.height;
 
   camera.follow(player);
 };
