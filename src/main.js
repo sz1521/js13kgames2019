@@ -359,7 +359,7 @@ const createPlayer = () => {
   return Sprite({
     color: "red",
     width: 50,
-    height: 60,
+    height: 150,
     vel: 0, // Vertical velocity, affected by jumping and gravity
     state: STATE_ON_GROUND,
 
