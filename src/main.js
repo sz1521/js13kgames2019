@@ -71,7 +71,7 @@ let camera = {
   zoom: 1,
   mode: CAMERA_MODE_FOLLOW_PLAYER,
 
-  zoomToLevel: function() {
+  zoomToLevel: function () {
     this.x = level.left + level.width / 2;
     this.y = level.top + level.height / 2;
 
@@ -120,7 +120,7 @@ let camera = {
     this.y = newY;
   },
 
-  update: function() {
+  update: function () {
     if (this.mode === CAMERA_MODE_SHOW_WHOLE_LEVEL) {
       this.zoomToLevel();
     } else {
@@ -201,14 +201,14 @@ const createCloud = (y, z) => {
       dx: 0.07 + Math.random() * 0.1,
       radius: 20 + Math.random() * Math.random() * 70,
 
-      update: function() {
+      update: function () {
         this.advance();
         if (this.x - 300 > level.width) {
           this.x = -600;
         }
       },
 
-      render: function() {
+      render: function () {
         let cx = this.context;
         cx.save();
         cx.fillStyle = this.color;
@@ -281,14 +281,14 @@ const createCloud = (y, z) => {
       dx: 0.05 + Math.random() * 0.1,
       radius: 20 + Math.random() * Math.random() * 70,
 
-      update: function() {
+      update: function () {
         this.advance();
         if (this.x - 300 > level.width) {
           this.x = -600;
         }
       },
 
-      render: function() {
+      render: function () {
         let cx = this.context;
         cx.save();
         cx.fillStyle = this.color;
@@ -359,20 +359,20 @@ const createPlayer = () => {
   return Sprite({
     color: "red",
     width: 50,
-    height: 60,
+    height: 150,
     vel: 0, // Vertical velocity, affected by jumping and gravity
     state: STATE_ON_GROUND,
 
-    isOnGround: function() {
+    isOnGround: function () {
       const margin = 5;
       return this.y + this.height > level.height - margin;
     },
 
-    render: function() {
+    render: function () {
       this.context.drawImage(playerImage, this.x, this.y);
     },
 
-    update: function() {
+    update: function () {
       let dx = 0;
       let dy = 0;
 
@@ -433,7 +433,7 @@ const createLadder = () => {
     width: 30,
     height: level.height,
 
-    render: function() {
+    render: function () {
       const stepGap = 30;
       const stepCount = this.height / stepGap;
       let cx = this.context;
@@ -473,7 +473,7 @@ const initScene = () => {
     width: 80,
     height: 150,
 
-    render: function() {
+    render: function () {
       this.context.drawImage(houseImage, this.x, this.y);
     }
   });
