@@ -71,6 +71,16 @@ const isPlayerOnLadders = () => {
   return false;
 };
 
+const findHittingEnemy = () => {
+  for (let i = 0; i < enemies.length; i++) {
+    let enemy = enemies[i];
+    enemy.update();
+    if (enemy.collidesWith(player)) {
+      return enemy;
+    }
+  }
+};
+
 let loop = GameLoop({
   update: () => {
     for (let i = 0; i < clouds0.length; i++) {
@@ -78,11 +88,9 @@ let loop = GameLoop({
       clouds1[i].update();
     }
 
-    for (let i = 0; i < enemies.length; i++) {
-      enemies[i].update();
-    }
+    let hittingEnemy = findHittingEnemy();
 
-    player.update(isPlayerOnLadders(), platforms);
+    player.update(isPlayerOnLadders(), platforms, hittingEnemy);
 
     camera.update();
   },

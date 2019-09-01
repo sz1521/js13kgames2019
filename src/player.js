@@ -50,38 +50,38 @@ export const createPlayer = (level, image) => {
       this.context.drawImage(image, this.x, this.y);
     },
 
-    update(canClimb, platforms) {
+    update(canClimb, platforms, hittingEnemy) {
       let dx = 0;
       let dy = 0;
 
-      if (keyPressed("left") && this.x > 0) {
-        dx = -playerSpeed;
-      } else if (keyPressed("right") && this.x < level.width - this.width) {
-        dx = playerSpeed;
-      }
-
-      if (!canClimb && this.state === STATE_CLIMBING) {
-        this.state = STATE_FALLING;
-      }
-
       const platform = this.findPlatform(platforms);
 
-      if (keyPressed("up")) {
-        if (canClimb) {
+      if (hittingEnemy || (!canClimb && this.state === STATE_CLIMBING)) {
+        this.state = STATE_FALLING;
+      } else {
+        if (keyPressed("left") && this.x > 0) {
+          dx = -playerSpeed;
+        } else if (keyPressed("right") && this.x < level.width - this.width) {
+          dx = playerSpeed;
+        }
+
+        if (keyPressed("up")) {
+          if (canClimb) {
+            this.state = STATE_CLIMBING;
+            this.vel = 0;
+            dy -= climbSpeed;
+          } else if (
+            this.state !== STATE_FALLING &&
+            (platform || this.isOnGround())
+          ) {
+            this.vel = jumpVelocity;
+            this.state = STATE_FALLING;
+          }
+        } else if (keyPressed("down") && canClimb) {
           this.state = STATE_CLIMBING;
           this.vel = 0;
-          dy -= climbSpeed;
-        } else if (
-          this.state !== STATE_FALLING &&
-          (platform || this.isOnGround())
-        ) {
-          this.vel = jumpVelocity;
-          this.state = STATE_FALLING;
+          dy += climbSpeed;
         }
-      } else if (keyPressed("down") && canClimb) {
-        this.state = STATE_CLIMBING;
-        this.vel = 0;
-        dy += climbSpeed;
       }
 
       if (this.state === STATE_FALLING) {
@@ -100,7 +100,7 @@ export const createPlayer = (level, image) => {
         this.state = STATE_ON_PLATFORM;
       } else if (this.state === STATE_CLIMBING) {
         this.y += dy;
-      } else if (dy > 0 && platform) {
+      } else if (dy > 0 && platform && !hittingEnemy) {
         // Margin so that the player does not constantly toggle
         // between standing and free falling.
         const margin = 5;
