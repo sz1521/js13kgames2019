@@ -64,12 +64,17 @@ export const createPlayer = (level, image) => {
         this.state = STATE_FALLING;
       }
 
+      const platform = this.findPlatform(platforms);
+
       if (keyPressed("up")) {
         if (canClimb) {
           this.state = STATE_CLIMBING;
           this.vel = 0;
           dy -= climbSpeed;
-        } else if (this.state !== STATE_FALLING && this.isOnGround()) {
+        } else if (
+          this.state !== STATE_FALLING &&
+          (platform || this.isOnGround())
+        ) {
           this.vel = jumpVelocity;
           this.state = STATE_FALLING;
         }
@@ -95,17 +100,16 @@ export const createPlayer = (level, image) => {
         this.state = STATE_ON_PLATFORM;
       } else if (this.state === STATE_CLIMBING) {
         this.y += dy;
+      } else if (dy > 0 && platform) {
+        // Margin so that the player does not constantly toggle
+        // between standing and free falling.
+        const margin = 5;
+        this.y = platform.y - this.height + margin;
+        this.vel = 0;
+        this.state = STATE_ON_PLATFORM;
       } else {
-        let platform = dy > 0 ? this.findPlatform(platforms) : null;
-
-        if (platform) {
-          this.y = platform.y - this.height + 5;
-          this.vel = 0;
-          this.state = STATE_ON_PLATFORM;
-        } else {
-          this.state = STATE_FALLING;
-          this.y += dy;
-        }
+        this.state = STATE_FALLING;
+        this.y += dy;
       }
     },
 
