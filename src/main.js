@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-import { init, Sprite, GameLoop, bindKeys, initKeys } from "kontra";
+import { init, Sprite, GameLoop, bindKeys, keyPressed, initKeys } from "kontra";
 import { createCamera } from "./camera.js";
 import { createPlayer } from "./player.js";
 import { createEnemy } from "./enemy.js";
@@ -71,24 +71,23 @@ const isPlayerOnLadders = () => {
   return false;
 };
 
-const findHittingEnemy = () => {
-  for (let i = 0; i < enemies.length; i++) {
-    let enemy = enemies[i];
-    enemy.update();
-    if (enemy.collidesWith(player)) {
-      return enemy;
-    }
-  }
-};
-
 let loop = GameLoop({
   update: () => {
+    const back = keyPressed("space");
+
     for (let i = 0; i < clouds0.length; i++) {
       clouds0[i].update();
       clouds1[i].update();
     }
 
-    let hittingEnemy = findHittingEnemy();
+    let hittingEnemy;
+    for (let i = 0; i < enemies.length; i++) {
+      let enemy = enemies[i];
+      enemy.update(back);
+      if (enemy.collidesWith(player)) {
+        hittingEnemy = enemy;
+      }
+    }
 
     player.update(isPlayerOnLadders(), platforms, hittingEnemy);
 
