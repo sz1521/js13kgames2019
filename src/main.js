@@ -40,6 +40,8 @@ let { canvas, context } = init();
 
 initKeys();
 
+const TIME_BACK_MAX_SECONDS = 3;
+
 let playerImage = imageFromSvg(playerSvg);
 let houseImage = imageFromSvg(houseSvg);
 
@@ -71,30 +73,56 @@ const isPlayerOnLadders = () => {
   return false;
 };
 
+const timeTravelUpdate = (entity, back) => {
+  if (!entity.positions) {
+    entity.positions = [];
+  }
+
+  if (back) {
+    if (entity.positions.length > 0) {
+      let position = entity.positions.pop();
+      entity.position = position;
+    }
+  } else {
+    const maxLength = TIME_BACK_MAX_SECONDS * 60;
+    entity.positions.push(entity.position);
+    if (entity.positions.length > maxLength) {
+      entity.positions.shift();
+    }
+
+    entity.update();
+  }
+};
+
 let loop = GameLoop({
-  update: () => {
+  update() {
     const back = keyPressed("space");
 
     for (let i = 0; i < clouds0.length; i++) {
-      clouds0[i].update();
-      clouds1[i].update();
+      timeTravelUpdate(clouds0[i], back);
+      timeTravelUpdate(clouds1[i], back);
     }
 
     let hittingEnemy;
     for (let i = 0; i < enemies.length; i++) {
       let enemy = enemies[i];
-      enemy.update(back);
+
+      timeTravelUpdate(enemy, back);
+
       if (enemy.collidesWith(player)) {
         hittingEnemy = enemy;
       }
     }
 
-    player.update(isPlayerOnLadders(), platforms, hittingEnemy);
+    if (!back) {
+      // The player stays put when moving back in time.
+      player.update(isPlayerOnLadders(), platforms, hittingEnemy);
+    }
 
     camera.update();
   },
 
-  render: () => {
+  render() {
     context.fillStyle = "rgb(100,100,255)";
     context.fillRect(0, 0, canvas.width, canvas.height);
 

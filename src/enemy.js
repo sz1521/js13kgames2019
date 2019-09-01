@@ -32,26 +32,8 @@ export const createEnemy = platform => {
     height: 80,
     color: "black",
     dx: SPEED,
-    positions: [],
 
-    savePosition() {
-      const maxLength = 120;
-      this.positions.push(this.position);
-      if (this.positions.length > maxLength) {
-        this.positions.shift();
-      }
-    },
-
-    update(back) {
-      if (back) {
-        if (this.positions.length > 0) {
-          let position = this.positions.pop();
-          this.position = position;
-        }
-        return;
-      }
-
-      this.savePosition();
+    update() {
       this.advance();
 
       if (platform.x + platform.width - this.width < this.x) {
