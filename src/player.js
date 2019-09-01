@@ -29,8 +29,8 @@ const gravity = 2;
 const jumpVelocity = -30;
 const climbSpeed = 2;
 
-const STATE_ON_GROUND = 0;
-const STATE_JUMPING = 1;
+const STATE_ON_PLATFORM = 0;
+const STATE_FALLING = 1;
 const STATE_CLIMBING = 2;
 
 export const createPlayer = (level, image) => {
@@ -39,7 +39,7 @@ export const createPlayer = (level, image) => {
     width: 50,
     height: 150,
     vel: 0, // Vertical velocity, affected by jumping and gravity
-    state: STATE_ON_GROUND,
+    state: STATE_ON_PLATFORM,
 
     isOnGround() {
       const margin = 5;
@@ -61,7 +61,7 @@ export const createPlayer = (level, image) => {
       }
 
       if (!canClimb && this.state === STATE_CLIMBING) {
-        this.state = STATE_JUMPING;
+        this.state = STATE_FALLING;
       }
 
       if (keyPressed("up")) {
@@ -69,9 +69,9 @@ export const createPlayer = (level, image) => {
           this.state = STATE_CLIMBING;
           this.vel = 0;
           dy -= climbSpeed;
-        } else if (this.state !== STATE_JUMPING && this.isOnGround()) {
+        } else if (this.state !== STATE_FALLING && this.isOnGround()) {
           this.vel = jumpVelocity;
-          this.state = STATE_JUMPING;
+          this.state = STATE_FALLING;
         }
       } else if (keyPressed("down") && canClimb) {
         this.state = STATE_CLIMBING;
@@ -79,7 +79,7 @@ export const createPlayer = (level, image) => {
         dy += climbSpeed;
       }
 
-      if (this.state === STATE_JUMPING) {
+      if (this.state === STATE_FALLING) {
         this.vel += gravity;
         dy += this.vel;
       }
@@ -92,7 +92,7 @@ export const createPlayer = (level, image) => {
         // hits ground
         this.y = level.height - this.height;
         this.vel = 0;
-        this.state = STATE_ON_GROUND;
+        this.state = STATE_ON_PLATFORM;
       } else if (this.state === STATE_CLIMBING) {
         this.y += dy;
       } else {
@@ -101,9 +101,9 @@ export const createPlayer = (level, image) => {
         if (platform) {
           this.y = platform.y - this.height + 5;
           this.vel = 0;
-          this.state = STATE_ON_GROUND;
+          this.state = STATE_ON_PLATFORM;
         } else {
-          this.state = STATE_JUMPING;
+          this.state = STATE_FALLING;
           this.y += dy;
         }
       }
