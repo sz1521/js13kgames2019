@@ -24,6 +24,7 @@
 import { init, Sprite, GameLoop, bindKeys, initKeys } from "kontra";
 import { createCamera } from "./camera.js";
 import { createPlayer } from "./player.js";
+import { createEnemy } from "./enemy.js";
 import playerSvg from "./images/player.svg";
 import houseSvg from "./images/house.svg";
 
@@ -47,6 +48,7 @@ let clouds1 = [];
 let ladders = [];
 let platforms = [];
 let backgroundObjects = [];
+let enemies = [];
 let player;
 
 let level = {
@@ -74,6 +76,10 @@ let loop = GameLoop({
     for (let i = 0; i < clouds0.length; i++) {
       clouds0[i].update();
       clouds1[i].update();
+    }
+
+    for (let i = 0; i < enemies.length; i++) {
+      enemies[i].update();
     }
 
     player.update(isPlayerOnLadders(), platforms);
@@ -107,6 +113,10 @@ let loop = GameLoop({
 
     for (let i = 0; i < platforms.length; i++) {
       platforms[i].render();
+    }
+
+    for (let i = 0; i < enemies.length; i++) {
+      enemies[i].render();
     }
 
     player.render();
@@ -348,7 +358,6 @@ const createTower = () => {
   const centerX = (level.width - level.left) / 2;
 
   for (let i = 0; i < 8; i++) {
-    console.log("floor", i);
     const floorWidth = 800;
     const floorHeight = 300;
     const floorTop = level.height - (i + 1) * floorHeight;
@@ -360,10 +369,14 @@ const createTower = () => {
     platform.y = floorTop;
     platforms.push(platform);
 
+    let enemy = createEnemy(platform);
+    enemy.x = floorLeft + Math.random() * (floorWidth - enemy.width);
+    enemy.y = floorTop - enemy.height;
+    enemies.push(enemy);
+
     const ladderCount = Math.floor(Math.random() * 3 + 1);
 
     for (let j = 0; j < ladderCount; j++) {
-      console.log("ladder", j);
       let ladder = createLadder();
       ladder.height = floorHeight;
       ladder.x = floorLeft + Math.random() * (floorWidth - ladder.width);
