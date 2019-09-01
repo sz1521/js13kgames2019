@@ -76,7 +76,7 @@ let loop = GameLoop({
       clouds1[i].update();
     }
 
-    player.update(isPlayerOnLadders());
+    player.update(isPlayerOnLadders(), platforms);
 
     camera.update();
   },

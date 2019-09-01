@@ -41,16 +41,16 @@ export const createPlayer = (level, image) => {
     vel: 0, // Vertical velocity, affected by jumping and gravity
     state: STATE_ON_GROUND,
 
-    isOnGround: function() {
+    isOnGround() {
       const margin = 5;
       return this.y + this.height > level.height - margin;
     },
 
-    render: function() {
+    render() {
       this.context.drawImage(image, this.x, this.y);
     },
 
-    update: function(canClimb) {
+    update(canClimb, platforms) {
       let dx = 0;
       let dy = 0;
 
@@ -61,7 +61,7 @@ export const createPlayer = (level, image) => {
       }
 
       if (!canClimb && this.state === STATE_CLIMBING) {
-        this.state = STATE_ON_GROUND;
+        this.state = STATE_JUMPING;
       }
 
       if (keyPressed("up")) {
@@ -79,19 +79,44 @@ export const createPlayer = (level, image) => {
         dy += climbSpeed;
       }
 
-      if (this.state !== STATE_CLIMBING) {
+      if (this.state === STATE_JUMPING) {
         this.vel += gravity;
         dy += this.vel;
       }
 
-      this.x += dx;
+      if (dx !== 0) {
+        this.x += dx;
+      }
 
       if (this.y + dy > level.height - this.height) {
+        // hits ground
         this.y = level.height - this.height;
         this.vel = 0;
         this.state = STATE_ON_GROUND;
-      } else {
+      } else if (this.state === STATE_CLIMBING) {
         this.y += dy;
+      } else {
+        let platform = dy > 0 ? this.findPlatform(platforms) : null;
+
+        if (platform) {
+          this.y = platform.y - this.height + 5;
+          this.vel = 0;
+          this.state = STATE_ON_GROUND;
+        } else {
+          this.state = STATE_JUMPING;
+          this.y += dy;
+        }
+      }
+    },
+
+    findPlatform(platforms) {
+      for (let i = 0; i < platforms.length; i++) {
+        let platform = platforms[i];
+        if (this.collidesWith(platform)) {
+          if (this.y + this.height < platform.y + platform.height) {
+            return platform;
+          }
+        }
       }
     }
   });
