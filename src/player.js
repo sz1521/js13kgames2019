@@ -40,6 +40,7 @@ export const createPlayer = (level, image) => {
     height: 150,
     vel: 0, // Vertical velocity, affected by jumping and gravity
     state: STATE_ON_PLATFORM,
+    fallingToGround: false,
 
     isOnGround() {
       const margin = 5;
@@ -56,9 +57,12 @@ export const createPlayer = (level, image) => {
 
       const platform = this.findPlatform(platforms);
 
-      if (hittingEnemy || (!canClimb && this.state === STATE_CLIMBING)) {
+      if (hittingEnemy) {
         this.state = STATE_FALLING;
-      } else {
+        this.fallingToGround = true;
+      } else if (!canClimb && this.state === STATE_CLIMBING) {
+        this.state = STATE_FALLING;
+      } else if (!this.fallingToGround) {
         if (keyPressed("left") && this.x > 0) {
           dx = -playerSpeed;
         } else if (keyPressed("right") && this.x < level.width - this.width) {
@@ -98,6 +102,10 @@ export const createPlayer = (level, image) => {
         this.y = level.height - this.height;
         this.vel = 0;
         this.state = STATE_ON_PLATFORM;
+        this.fallingToGround = false;
+      } else if (this.fallingToGround) {
+        this.state = STATE_FALLING;
+        this.y += dy;
       } else if (this.state === STATE_CLIMBING) {
         this.y += dy;
       } else if (dy > 0 && platform && !hittingEnemy) {
