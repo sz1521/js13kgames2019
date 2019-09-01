@@ -52,8 +52,8 @@ let player;
 let level = {
   left: 0,
   top: 0,
-  width: 1200,
-  height: 1500
+  width: 2000,
+  height: 3000
 };
 
 let camera = createCamera(level, canvas);
@@ -323,7 +323,7 @@ const createLadder = () => {
 
 const createPlatform = () => {
   return Sprite({
-    color: "green",
+    color: "rgb(100, 100, 100)",
     width: 200,
     height: 30
   });
@@ -341,11 +341,43 @@ const createCloudLayer = y => {
   }
 };
 
+const createTower = () => {
+  ladders = [];
+  platforms = [];
+
+  const centerX = (level.width - level.left) / 2;
+
+  for (let i = 0; i < 8; i++) {
+    console.log("floor", i);
+    const floorWidth = 800;
+    const floorHeight = 300;
+    const floorTop = level.height - (i + 1) * floorHeight;
+    const floorLeft = centerX - floorWidth / 2;
+
+    let platform = createPlatform();
+    platform.width = floorWidth;
+    platform.x = floorLeft;
+    platform.y = floorTop;
+    platforms.push(platform);
+
+    const ladderCount = Math.floor(Math.random() * 3 + 1);
+
+    for (let j = 0; j < ladderCount; j++) {
+      console.log("ladder", j);
+      let ladder = createLadder();
+      ladder.height = floorHeight;
+      ladder.x = floorLeft + Math.random() * (floorWidth - ladder.width);
+      ladder.y = floorTop;
+      ladders.push(ladder);
+    }
+  }
+};
+
 const initScene = () => {
   clouds0 = [];
   clouds1 = [];
   createCloudLayer(200);
-  createCloudLayer(650);
+  createCloudLayer(800);
 
   backgroundObjects = [];
 
@@ -357,21 +389,11 @@ const initScene = () => {
       this.context.drawImage(houseImage, this.x, this.y);
     }
   });
-  house.x = 800;
+  house.x = level.width - 200;
   house.y = level.height - house.height;
   backgroundObjects.push(house);
 
-  ladders = [];
-  let ladder = createLadder();
-  ladder.x = level.width / 2;
-  ladder.y = level.top;
-  ladders.push(ladder);
-
-  platforms = [];
-  let platform = createPlatform();
-  platform.x = 300;
-  platform.y = level.height - 100;
-  platforms.push(platform);
+  createTower();
 
   player = createPlayer(level, playerImage);
   player.x = 200;

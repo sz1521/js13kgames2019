@@ -24,7 +24,7 @@
 
 import { Sprite, keyPressed } from "kontra";
 
-const playerSpeed = 3;
+const playerSpeed = 5;
 const gravity = 2;
 const jumpVelocity = -30;
 const climbSpeed = 2;
