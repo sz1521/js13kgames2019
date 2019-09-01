@@ -24,13 +24,13 @@
 
 import { Sprite, keyPressed } from "kontra";
 
-const playerSpeed = 3;
+const playerSpeed = 5;
 const gravity = 2;
 const jumpVelocity = -30;
 const climbSpeed = 2;
 
-const STATE_ON_GROUND = 0;
-const STATE_JUMPING = 1;
+const STATE_ON_PLATFORM = 0;
+const STATE_FALLING = 1;
 const STATE_CLIMBING = 2;
 
 export const createPlayer = (level, image) => {
@@ -39,59 +39,96 @@ export const createPlayer = (level, image) => {
     width: 50,
     height: 150,
     vel: 0, // Vertical velocity, affected by jumping and gravity
-    state: STATE_ON_GROUND,
+    state: STATE_ON_PLATFORM,
+    fallingToGround: false,
 
-    isOnGround: function() {
+    isOnGround() {
       const margin = 5;
       return this.y + this.height > level.height - margin;
     },
 
-    render: function() {
+    render() {
       this.context.drawImage(image, this.x, this.y);
     },
 
-    update: function(canClimb) {
+    update(canClimb, platforms, hittingEnemy) {
       let dx = 0;
       let dy = 0;
 
-      if (keyPressed("left") && this.x > 0) {
-        dx = -playerSpeed;
-      } else if (keyPressed("right") && this.x < level.width - this.width) {
-        dx = playerSpeed;
-      }
+      const platform = this.findPlatform(platforms);
 
-      if (!canClimb && this.state === STATE_CLIMBING) {
-        this.state = STATE_ON_GROUND;
-      }
+      if (hittingEnemy) {
+        this.state = STATE_FALLING;
+        this.fallingToGround = true;
+      } else if (!canClimb && this.state === STATE_CLIMBING) {
+        this.state = STATE_FALLING;
+      } else if (!this.fallingToGround) {
+        if (keyPressed("left") && this.x > 0) {
+          dx = -playerSpeed;
+        } else if (keyPressed("right") && this.x < level.width - this.width) {
+          dx = playerSpeed;
+        }
 
-      if (keyPressed("up")) {
-        if (canClimb) {
+        if (keyPressed("up")) {
+          if (canClimb) {
+            this.state = STATE_CLIMBING;
+            this.vel = 0;
+            dy -= climbSpeed;
+          } else if (
+            this.state !== STATE_FALLING &&
+            (platform || this.isOnGround())
+          ) {
+            this.vel = jumpVelocity;
+            this.state = STATE_FALLING;
+          }
+        } else if (keyPressed("down") && canClimb) {
           this.state = STATE_CLIMBING;
           this.vel = 0;
-          dy -= climbSpeed;
-        } else if (this.state !== STATE_JUMPING && this.isOnGround()) {
-          this.vel = jumpVelocity;
-          this.state = STATE_JUMPING;
+          dy += climbSpeed;
         }
-      } else if (keyPressed("down") && canClimb) {
-        this.state = STATE_CLIMBING;
-        this.vel = 0;
-        dy += climbSpeed;
       }
 
-      if (this.state !== STATE_CLIMBING) {
+      if (this.state === STATE_FALLING) {
         this.vel += gravity;
         dy += this.vel;
       }
 
-      this.x += dx;
+      if (dx !== 0) {
+        this.x += dx;
+      }
 
       if (this.y + dy > level.height - this.height) {
+        // hits ground
         this.y = level.height - this.height;
         this.vel = 0;
-        this.state = STATE_ON_GROUND;
-      } else {
+        this.state = STATE_ON_PLATFORM;
+        this.fallingToGround = false;
+      } else if (this.fallingToGround) {
+        this.state = STATE_FALLING;
         this.y += dy;
+      } else if (this.state === STATE_CLIMBING) {
+        this.y += dy;
+      } else if (dy > 0 && platform && !hittingEnemy) {
+        // Margin so that the player does not constantly toggle
+        // between standing and free falling.
+        const margin = 5;
+        this.y = platform.y - this.height + margin;
+        this.vel = 0;
+        this.state = STATE_ON_PLATFORM;
+      } else {
+        this.state = STATE_FALLING;
+        this.y += dy;
+      }
+    },
+
+    findPlatform(platforms) {
+      for (let i = 0; i < platforms.length; i++) {
+        let platform = platforms[i];
+        if (this.collidesWith(platform)) {
+          if (this.y + this.height < platform.y + platform.height) {
+            return platform;
+          }
+        }
       }
     }
   });

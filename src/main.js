@@ -24,6 +24,7 @@
 import { init, Sprite, GameLoop, bindKeys, initKeys } from "kontra";
 import { createCamera } from "./camera.js";
 import { createPlayer } from "./player.js";
+import { createEnemy } from "./enemy.js";
 import playerSvg from "./images/player.svg";
 import houseSvg from "./images/house.svg";
 
@@ -45,14 +46,16 @@ let houseImage = imageFromSvg(houseSvg);
 let clouds0 = [];
 let clouds1 = [];
 let ladders = [];
+let platforms = [];
 let backgroundObjects = [];
+let enemies = [];
 let player;
 
 let level = {
   left: 0,
   top: 0,
-  width: 1200,
-  height: 1500
+  width: 2000,
+  height: 3000
 };
 
 let camera = createCamera(level, canvas);
@@ -68,6 +71,16 @@ const isPlayerOnLadders = () => {
   return false;
 };
 
+const findHittingEnemy = () => {
+  for (let i = 0; i < enemies.length; i++) {
+    let enemy = enemies[i];
+    enemy.update();
+    if (enemy.collidesWith(player)) {
+      return enemy;
+    }
+  }
+};
+
 let loop = GameLoop({
   update: () => {
     for (let i = 0; i < clouds0.length; i++) {
@@ -75,7 +88,9 @@ let loop = GameLoop({
       clouds1[i].update();
     }
 
-    player.update(isPlayerOnLadders());
+    let hittingEnemy = findHittingEnemy();
+
+    player.update(isPlayerOnLadders(), platforms, hittingEnemy);
 
     camera.update();
   },
@@ -102,6 +117,14 @@ let loop = GameLoop({
     for (let i = 0; i < ladders.length; i++) {
       let ladder = ladders[i];
       ladder.render();
+    }
+
+    for (let i = 0; i < platforms.length; i++) {
+      platforms[i].render();
+    }
+
+    for (let i = 0; i < enemies.length; i++) {
+      enemies[i].render();
     }
 
     player.render();
@@ -316,6 +339,14 @@ const createLadder = () => {
   });
 };
 
+const createPlatform = () => {
+  return Sprite({
+    color: "rgb(100, 100, 100)",
+    width: 200,
+    height: 30
+  });
+};
+
 const createCloudLayer = y => {
   for (let i = 0; i < 20; i++) {
     let cloud0 = createCloud(y, 0);
@@ -328,11 +359,46 @@ const createCloudLayer = y => {
   }
 };
 
+const createTower = () => {
+  ladders = [];
+  platforms = [];
+
+  const centerX = (level.width - level.left) / 2;
+
+  for (let i = 0; i < 8; i++) {
+    const floorWidth = 800;
+    const floorHeight = 300;
+    const floorTop = level.height - (i + 1) * floorHeight;
+    const floorLeft = centerX - floorWidth / 2;
+
+    let platform = createPlatform();
+    platform.width = floorWidth;
+    platform.x = floorLeft;
+    platform.y = floorTop;
+    platforms.push(platform);
+
+    let enemy = createEnemy(platform);
+    enemy.x = floorLeft + Math.random() * (floorWidth - enemy.width);
+    enemy.y = floorTop - enemy.height;
+    enemies.push(enemy);
+
+    const ladderCount = Math.floor(Math.random() * 3 + 1);
+
+    for (let j = 0; j < ladderCount; j++) {
+      let ladder = createLadder();
+      ladder.height = floorHeight;
+      ladder.x = floorLeft + Math.random() * (floorWidth - ladder.width);
+      ladder.y = floorTop;
+      ladders.push(ladder);
+    }
+  }
+};
+
 const initScene = () => {
   clouds0 = [];
   clouds1 = [];
   createCloudLayer(200);
-  createCloudLayer(650);
+  createCloudLayer(800);
 
   backgroundObjects = [];
 
@@ -344,19 +410,15 @@ const initScene = () => {
       this.context.drawImage(houseImage, this.x, this.y);
     }
   });
-  house.x = 400;
+  house.x = level.width - 200;
   house.y = level.height - house.height;
   backgroundObjects.push(house);
 
-  ladders = [];
-  let ladder = createLadder();
-  ladder.x = level.width / 2;
-  ladder.y = level.top;
-  ladders.push(ladder);
+  createTower();
 
   player = createPlayer(level, playerImage);
-  player.x = 30;
-  player.y = level.height / 2 - player.height;
+  player.x = 200;
+  player.y = level.height - player.height;
 
   camera.follow(player);
 };
