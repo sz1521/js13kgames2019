@@ -52,10 +52,8 @@ export const createPlayer = (level, image) => {
     },
 
     update(canClimb, platforms, hittingEnemy) {
-      let dx = 0;
-      let dy = 0;
-
       const platform = this.findPlatform(platforms);
+      let movement = { dx: 0, dy: 0 };
 
       if (hittingEnemy) {
         this.state = STATE_FALLING;
@@ -63,30 +61,10 @@ export const createPlayer = (level, image) => {
       } else if (!canClimb && this.state === STATE_CLIMBING) {
         this.state = STATE_FALLING;
       } else if (!this.fallingToGround) {
-        if (keyPressed("left") && this.x > 0) {
-          dx = -playerSpeed;
-        } else if (keyPressed("right") && this.x < level.width - this.width) {
-          dx = playerSpeed;
-        }
-
-        if (keyPressed("up")) {
-          if (canClimb) {
-            this.state = STATE_CLIMBING;
-            this.vel = 0;
-            dy -= climbSpeed;
-          } else if (
-            this.state !== STATE_FALLING &&
-            (platform || this.isOnGround())
-          ) {
-            this.vel = jumpVelocity;
-            this.state = STATE_FALLING;
-          }
-        } else if (keyPressed("down") && canClimb) {
-          this.state = STATE_CLIMBING;
-          this.vel = 0;
-          dy += climbSpeed;
-        }
+        movement = this.handleControls(canClimb, platform);
       }
+
+      let { dx, dy } = movement;
 
       if (this.state === STATE_FALLING) {
         this.vel += gravity;
@@ -119,6 +97,37 @@ export const createPlayer = (level, image) => {
         this.state = STATE_FALLING;
         this.y += dy;
       }
+    },
+
+    handleControls(canClimb, platform) {
+      let dx = 0;
+      let dy = 0;
+
+      if (keyPressed("left") && this.x > 0) {
+        dx = -playerSpeed;
+      } else if (keyPressed("right") && this.x < level.width - this.width) {
+        dx = playerSpeed;
+      }
+
+      if (keyPressed("up")) {
+        if (canClimb) {
+          this.state = STATE_CLIMBING;
+          this.vel = 0;
+          dy -= climbSpeed;
+        } else if (
+          this.state !== STATE_FALLING &&
+          (platform || this.isOnGround())
+        ) {
+          this.vel = jumpVelocity;
+          this.state = STATE_FALLING;
+        }
+      } else if (keyPressed("down") && canClimb) {
+        this.state = STATE_CLIMBING;
+        this.vel = 0;
+        dy += climbSpeed;
+      }
+
+      return { dx, dy };
     },
 
     findPlatform(platforms) {
