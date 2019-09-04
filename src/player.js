@@ -97,13 +97,15 @@ export const createPlayer = (level, image) => {
       if (this.y + dy > level.height - this.height) {
         // hits ground
         this.y = level.height - this.height;
-        this.vel = 0;
-        this.state = STATE_ON_PLATFORM;
 
         if (this.fallingToGround) {
-          camera.shake(10, 1);
+          this._screenShake(camera);
           this.state = STATE_DEAD;
+        } else {
+          this.state = STATE_ON_PLATFORM;
         }
+
+        this.vel = 0;
       } else if (this.fallingToGround) {
         this.state = STATE_FALLING;
         this.y += dy;
@@ -120,6 +122,14 @@ export const createPlayer = (level, image) => {
         this.state = STATE_FALLING;
         this.y += dy;
       }
+    },
+
+    _screenShake(camera) {
+      const topVel = 80;
+      const maxPower = 20;
+      const scaledPower =
+        (Math.min(topVel, Math.max(this.vel - 20, 0)) / topVel) * maxPower;
+      camera.shake(scaledPower, 0.5);
     },
 
     turnHorizontally() {
