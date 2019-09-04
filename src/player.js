@@ -48,7 +48,18 @@ export const createPlayer = (level, image) => {
     },
 
     render() {
-      this.context.drawImage(image, this.x, this.y);
+      this.context.save();
+      this.context.translate(this.x, this.y);
+
+      if (this.fallingToGround) {
+        // Rotation is around top left corner, adjust accordingly:
+        this.context.translate(0, this.height);
+
+        this.context.rotate(-Math.PI / 2);
+      }
+
+      this.context.drawImage(image, 0, 0);
+      this.context.restore();
     },
 
     update(canClimb, platforms, hittingEnemy) {
@@ -57,7 +68,10 @@ export const createPlayer = (level, image) => {
 
       if (hittingEnemy) {
         this.state = STATE_FALLING;
-        this.fallingToGround = true;
+        if (!this.fallingToGround) {
+          this.fallingToGround = true;
+          this.turnHorizontally();
+        }
       } else if (!canClimb && this.state === STATE_CLIMBING) {
         this.state = STATE_FALLING;
       } else if (!this.fallingToGround) {
@@ -80,7 +94,6 @@ export const createPlayer = (level, image) => {
         this.y = level.height - this.height;
         this.vel = 0;
         this.state = STATE_ON_PLATFORM;
-        this.fallingToGround = false;
       } else if (this.fallingToGround) {
         this.state = STATE_FALLING;
         this.y += dy;
@@ -97,6 +110,13 @@ export const createPlayer = (level, image) => {
         this.state = STATE_FALLING;
         this.y += dy;
       }
+    },
+
+    turnHorizontally() {
+      let oldWidth = this.width,
+        oldHeight = this.height;
+      this.width = oldHeight;
+      this.height = oldWidth;
     },
 
     handleControls(canClimb, platform) {
