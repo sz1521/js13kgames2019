@@ -32,6 +32,7 @@ const climbSpeed = 2;
 const STATE_ON_PLATFORM = 0;
 const STATE_FALLING = 1;
 const STATE_CLIMBING = 2;
+const STATE_DEAD = 3;
 
 export const createPlayer = (level, image) => {
   return Sprite({
@@ -62,7 +63,11 @@ export const createPlayer = (level, image) => {
       this.context.restore();
     },
 
-    update(canClimb, platforms, hittingEnemy) {
+    update(canClimb, platforms, hittingEnemy, camera) {
+      if (this.state === STATE_DEAD) {
+        return;
+      }
+
       const platform = this.findPlatform(platforms);
       let movement = { dx: 0, dy: 0 };
 
@@ -94,6 +99,11 @@ export const createPlayer = (level, image) => {
         this.y = level.height - this.height;
         this.vel = 0;
         this.state = STATE_ON_PLATFORM;
+
+        if (this.fallingToGround) {
+          camera.shake(10, 1);
+          this.state = STATE_DEAD;
+        }
       } else if (this.fallingToGround) {
         this.state = STATE_FALLING;
         this.y += dy;

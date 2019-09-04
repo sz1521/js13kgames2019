@@ -27,6 +27,8 @@ export const createCamera = (level, canvas) => {
     x: 0,
     y: 0,
     zoom: 1,
+    shakePower: 0,
+    shakeDecay: 0,
 
     follow(target) {
       this.zoom = 1;
@@ -46,11 +48,31 @@ export const createCamera = (level, canvas) => {
       }
     },
 
+    shake(power = 8, length = 0.5) {
+      this.shakePower = power;
+      this.shakeDecay = power / length;
+    },
+
     update() {
       if (this.target) {
         this._fitZoom();
         this._follow();
       }
+
+      this._shake();
+    },
+
+    _shake() {
+      const { shakePower } = this;
+
+      if (shakePower <= 0) {
+        return;
+      }
+
+      this.x += Math.random() * shakePower * 2 - shakePower;
+      this.y += Math.random() * shakePower * 2 - shakePower;
+
+      this.shakePower -= this.shakeDecay * (1.0 / 60);
     },
 
     _fitZoom() {
