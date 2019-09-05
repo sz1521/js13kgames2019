@@ -62,17 +62,6 @@ let level = {
 
 let camera = createCamera(level, canvas);
 
-const isPlayerOnLadders = () => {
-  for (let i = 0; i < ladders.length; i++) {
-    let ladder = ladders[i];
-    if (ladder.collidesWith(player)) {
-      return true;
-    }
-  }
-
-  return false;
-};
-
 const timeTravelUpdate = (entity, back) => {
   if (!entity.positions) {
     entity.positions = [];
@@ -116,7 +105,7 @@ let loop = GameLoop({
 
     if (!back) {
       // The player stays put when moving back in time.
-      player.update(isPlayerOnLadders(), platforms, hittingEnemy, camera);
+      player.update(ladders, platforms, hittingEnemy, camera);
     }
 
     camera.update();
