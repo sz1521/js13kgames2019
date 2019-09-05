@@ -42,6 +42,7 @@ export const createPlayer = (level, image) => {
     vel: 0, // Vertical velocity, affected by jumping and gravity
     state: STATE_ON_PLATFORM,
     fallingToGround: false,
+    stopClimbing: false,
 
     isOnGround() {
       const margin = 5;
@@ -63,7 +64,26 @@ export const createPlayer = (level, image) => {
       this.context.restore();
     },
 
-    update(canClimb, platforms, hittingEnemy, camera) {
+    findLadderCollision(ladders) {
+      let collision, collidesHigh;
+
+      for (let i = 0; i < ladders.length; i++) {
+        let ladder = ladders[i];
+
+        if (ladder.collidesWith(this)) {
+          collision = true;
+
+          if (ladder.y < this.y && this.y < ladder.y + ladder.height) {
+            // Top of the player sprite is on ladder
+            collidesHigh = true;
+          }
+        }
+      }
+
+      return { collision, collidesHigh };
+    },
+
+    update(ladders, platforms, hittingEnemy, camera) {
       if (this.state === STATE_DEAD) {
         return;
       }
@@ -71,16 +91,18 @@ export const createPlayer = (level, image) => {
       const platform = this.findPlatform(platforms);
       let movement = { dx: 0, dy: 0 };
 
+      let ladderCollision = this.findLadderCollision(ladders);
+
       if (hittingEnemy) {
         this.state = STATE_FALLING;
         if (!this.fallingToGround) {
           this.fallingToGround = true;
           this.turnHorizontally();
         }
-      } else if (!canClimb && this.state === STATE_CLIMBING) {
+      } else if (!ladderCollision.collision && this.state === STATE_CLIMBING) {
         this.state = STATE_FALLING;
       } else if (!this.fallingToGround) {
-        movement = this.handleControls(canClimb, platform);
+        movement = this.handleControls(ladderCollision, platform);
       }
 
       let { dx, dy } = movement;
@@ -139,7 +161,7 @@ export const createPlayer = (level, image) => {
       this.height = oldWidth;
     },
 
-    handleControls(canClimb, platform) {
+    handleControls(ladderCollision, platform) {
       let dx = 0;
       let dy = 0;
 
@@ -149,17 +171,39 @@ export const createPlayer = (level, image) => {
         dx = playerSpeed;
       }
 
-      if (keyPressed("up")) {
-        if (this.state !== STATE_FALLING && (platform || this.isOnGround())) {
+      const upPressed = keyPressed("up");
+
+      if (!upPressed) {
+        // Up key must be released to jump after reaching the top of
+        // the stairs.
+        this.stopClimbing = false;
+      }
+
+      if (upPressed && !this.stopClimbing) {
+        if (
+          this.state === STATE_CLIMBING &&
+          dx === 0 &&
+          platform &&
+          !ladderCollision.collidesHigh
+        ) {
+          // Prevent jumping when reaching the top of the ladder,
+          // unless another ladder continues from there.
+          this.state = STATE_ON_PLATFORM;
+          this.stopClimbing = true;
+        } else if (
+          this.state !== STATE_FALLING &&
+          (platform || this.isOnGround()) &&
+          !(dx === 0 && ladderCollision.collidesHigh)
+        ) {
           this.vel = jumpVelocity;
           this.state = STATE_FALLING;
-        } else if (this.vel >= 0 && canClimb) {
+        } else if (this.vel >= 0 && ladderCollision.collision) {
           // Climb when not jumping
           this.state = STATE_CLIMBING;
           this.vel = 0;
           dy -= climbSpeed;
         }
-      } else if (keyPressed("down") && canClimb) {
+      } else if (keyPressed("down") && ladderCollision.collision) {
         this.state = STATE_CLIMBING;
         this.vel = 0;
         dy += climbSpeed;
