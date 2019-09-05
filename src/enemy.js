@@ -41,6 +41,17 @@ export const createEnemy = platform => {
       } else if (this.x < platform.x) {
         this.dx = SPEED;
       }
+    },
+
+    collidesWith(object) {
+      const xMargin = 10;
+      const yMargin = 20;
+      return (
+        this.x < object.x + object.width - xMargin &&
+        this.x + this.width - xMargin > object.x &&
+        this.y < object.y + object.height - yMargin &&
+        this.y + this.height - yMargin > object.y
+      );
     }
   });
 };
