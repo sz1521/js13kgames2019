@@ -116,7 +116,7 @@ let loop = GameLoop({
 
     if (!back) {
       // The player stays put when moving back in time.
-      player.update(isPlayerOnLadders(), platforms, hittingEnemy);
+      player.update(isPlayerOnLadders(), platforms, hittingEnemy, camera);
     }
 
     camera.update();
@@ -466,6 +466,9 @@ bindKeys(["1"], () => {
 });
 bindKeys(["2"], () => {
   camera.zoomToLevel();
+});
+bindKeys(["s"], () => {
+  camera.shake(10, 1);
 });
 
 loop.start();

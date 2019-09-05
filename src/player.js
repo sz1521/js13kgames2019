@@ -32,6 +32,7 @@ const climbSpeed = 2;
 const STATE_ON_PLATFORM = 0;
 const STATE_FALLING = 1;
 const STATE_CLIMBING = 2;
+const STATE_DEAD = 3;
 
 export const createPlayer = (level, image) => {
   return Sprite({
@@ -48,45 +49,41 @@ export const createPlayer = (level, image) => {
     },
 
     render() {
-      this.context.drawImage(image, this.x, this.y);
+      this.context.save();
+      this.context.translate(this.x, this.y);
+
+      if (this.fallingToGround) {
+        // Rotation is around top left corner, adjust accordingly:
+        this.context.translate(0, this.height);
+
+        this.context.rotate(-Math.PI / 2);
+      }
+
+      this.context.drawImage(image, 0, 0);
+      this.context.restore();
     },
 
-    update(canClimb, platforms, hittingEnemy) {
-      let dx = 0;
-      let dy = 0;
+    update(canClimb, platforms, hittingEnemy, camera) {
+      if (this.state === STATE_DEAD) {
+        return;
+      }
 
       const platform = this.findPlatform(platforms);
+      let movement = { dx: 0, dy: 0 };
 
       if (hittingEnemy) {
         this.state = STATE_FALLING;
-        this.fallingToGround = true;
+        if (!this.fallingToGround) {
+          this.fallingToGround = true;
+          this.turnHorizontally();
+        }
       } else if (!canClimb && this.state === STATE_CLIMBING) {
         this.state = STATE_FALLING;
       } else if (!this.fallingToGround) {
-        if (keyPressed("left") && this.x > 0) {
-          dx = -playerSpeed;
-        } else if (keyPressed("right") && this.x < level.width - this.width) {
-          dx = playerSpeed;
-        }
-
-        if (keyPressed("up")) {
-          if (canClimb) {
-            this.state = STATE_CLIMBING;
-            this.vel = 0;
-            dy -= climbSpeed;
-          } else if (
-            this.state !== STATE_FALLING &&
-            (platform || this.isOnGround())
-          ) {
-            this.vel = jumpVelocity;
-            this.state = STATE_FALLING;
-          }
-        } else if (keyPressed("down") && canClimb) {
-          this.state = STATE_CLIMBING;
-          this.vel = 0;
-          dy += climbSpeed;
-        }
+        movement = this.handleControls(canClimb, platform);
       }
+
+      let { dx, dy } = movement;
 
       if (this.state === STATE_FALLING) {
         this.vel += gravity;
@@ -100,9 +97,15 @@ export const createPlayer = (level, image) => {
       if (this.y + dy > level.height - this.height) {
         // hits ground
         this.y = level.height - this.height;
+
+        if (this.fallingToGround) {
+          this._screenShake(camera);
+          this.state = STATE_DEAD;
+        } else {
+          this.state = STATE_ON_PLATFORM;
+        }
+
         this.vel = 0;
-        this.state = STATE_ON_PLATFORM;
-        this.fallingToGround = false;
       } else if (this.fallingToGround) {
         this.state = STATE_FALLING;
         this.y += dy;
@@ -119,6 +122,52 @@ export const createPlayer = (level, image) => {
         this.state = STATE_FALLING;
         this.y += dy;
       }
+    },
+
+    _screenShake(camera) {
+      const topVel = 80;
+      const maxPower = 20;
+      const scaledPower =
+        (Math.min(topVel, Math.max(this.vel - 20, 0)) / topVel) * maxPower;
+      camera.shake(scaledPower, 0.5);
+    },
+
+    turnHorizontally() {
+      let oldWidth = this.width,
+        oldHeight = this.height;
+      this.width = oldHeight;
+      this.height = oldWidth;
+    },
+
+    handleControls(canClimb, platform) {
+      let dx = 0;
+      let dy = 0;
+
+      if (keyPressed("left") && this.x > 0) {
+        dx = -playerSpeed;
+      } else if (keyPressed("right") && this.x < level.width - this.width) {
+        dx = playerSpeed;
+      }
+
+      if (keyPressed("up")) {
+        if (canClimb) {
+          this.state = STATE_CLIMBING;
+          this.vel = 0;
+          dy -= climbSpeed;
+        } else if (
+          this.state !== STATE_FALLING &&
+          (platform || this.isOnGround())
+        ) {
+          this.vel = jumpVelocity;
+          this.state = STATE_FALLING;
+        }
+      } else if (keyPressed("down") && canClimb) {
+        this.state = STATE_CLIMBING;
+        this.vel = 0;
+        dy += climbSpeed;
+      }
+
+      return { dx, dy };
     },
 
     findPlatform(platforms) {
