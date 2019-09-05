@@ -150,16 +150,14 @@ export const createPlayer = (level, image) => {
       }
 
       if (keyPressed("up")) {
-        if (canClimb) {
+        if (this.state !== STATE_FALLING && (platform || this.isOnGround())) {
+          this.vel = jumpVelocity;
+          this.state = STATE_FALLING;
+        } else if (this.vel >= 0 && canClimb) {
+          // Climb when not jumping
           this.state = STATE_CLIMBING;
           this.vel = 0;
           dy -= climbSpeed;
-        } else if (
-          this.state !== STATE_FALLING &&
-          (platform || this.isOnGround())
-        ) {
-          this.vel = jumpVelocity;
-          this.state = STATE_FALLING;
         }
       } else if (keyPressed("down") && canClimb) {
         this.state = STATE_CLIMBING;
