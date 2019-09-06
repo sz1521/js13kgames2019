@@ -441,6 +441,13 @@ const initScene = () => {
   camera.follow(player);
 };
 
+const startGame = () => {
+  if (loop.isStopped) {
+    playTune("main");
+    loop.start();
+  }
+};
+
 const resize = () => {
   canvas.width = window.innerWidth - 10;
   canvas.height = window.innerHeight - 10;
@@ -464,6 +471,11 @@ bindKeys(["s"], () => {
   camera.shake(10, 1);
 });
 
-playTune("main");
+// Actual keys
+bindKeys(["enter"], () => {
+  startGame();
+});
 
-loop.start();
+context.fillStyle = "red";
+context.font = "22px Sans-serif";
+context.fillText("Press enter to start", 100, 100);
