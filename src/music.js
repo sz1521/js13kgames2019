@@ -23,7 +23,7 @@
  */
 
 import { song, endSong, eatEffect } from "./songs.js";
-import CPlayer from "./player-small.js";
+import CPlayer from "./musicplayer.js";
 
 const mainTune = document.createElement("audio");
 const eatTune = document.createElement("audio");

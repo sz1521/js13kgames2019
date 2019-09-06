@@ -449,6 +449,8 @@ const resize = () => {
 window.addEventListener("resize", resize, false);
 resize();
 
+initialize();
+
 initScene();
 
 // Keys for debugging
@@ -462,6 +464,6 @@ bindKeys(["s"], () => {
   camera.shake(10, 1);
 });
 
-initialize();
 playTune("main");
+
 loop.start();
