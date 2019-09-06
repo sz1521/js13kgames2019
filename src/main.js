@@ -27,6 +27,7 @@ import { createPlayer } from "./player.js";
 import { createEnemy } from "./enemy.js";
 import playerSvg from "./images/player.svg";
 import houseSvg from "./images/house.svg";
+import { initialize, playTune } from "./music.js";
 
 const imageFromSvg = svgString => {
   let image = new Image();
@@ -100,6 +101,7 @@ let loop = GameLoop({
 
       if (enemy.collidesWith(player)) {
         hittingEnemy = enemy;
+        playTune("end");
       }
     }
 
@@ -460,4 +462,6 @@ bindKeys(["s"], () => {
   camera.shake(10, 1);
 });
 
+initialize();
+playTune("main");
 loop.start();
