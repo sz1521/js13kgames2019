@@ -3,7 +3,7 @@
   <rect height="72" width="25" y="41" x="12" fill="silver"/>
   <rect height="1" width="1" y="431" x="242" fill="silver"/>
   <rect height="42" width="9" y="106" x="12" fill="silver"/>
-  <rect transform="rotate(12 30,127) " height="42" width="9" y="106" x="25" fill="silver"/>
+  <rect transform="rotate(12 30,127)" height="42" width="9" y="106" x="25" fill="silver"/>
   <rect height="46" width="9" y="52" x="5" stroke-width="1.5" fill="silver"/>
   <ellipse ry="23" rx="23" cy="24" cx="24" fill="lightblue" stroke-width="1" stroke="white"/>
   <ellipse ry="4" rx="4" cy="14" cx="34" fill="white"/>

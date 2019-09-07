@@ -25,7 +25,9 @@
 import { Sprite, keyPressed } from "kontra";
 import { imageFromSvg } from "./utils.js";
 import playerSvg from "./images/player.svg";
+import playerLeftfootSvg from "./images/player-leftfoot.svg";
 import playerverticalSvg from "./images/player-vertical.svg";
+import playerverticalLeftfootSvg from "./images/player-vertical-leftfoot.svg";
 
 const playerSpeed = 5;
 const gravity = 2;
@@ -41,7 +43,9 @@ const STATE_CLIMBING = 2;
 const STATE_DEAD = 3;
 
 const playerImage = imageFromSvg(playerSvg);
+const playerLeftfootImage = imageFromSvg(playerLeftfootSvg);
 const playerverticalImage = imageFromSvg(playerverticalSvg);
+const playerverticalLeftfootImage = imageFromSvg(playerverticalLeftfootSvg);
 
 export const createPlayer = level => {
   return Sprite({
@@ -54,6 +58,7 @@ export const createPlayer = level => {
     stopClimbing: false,
     moveLeft: false,
     moveVertical: false,
+    moveLeftFoot: 0,
     image: playerImage,
 
     isOnGround() {
@@ -64,19 +69,30 @@ export const createPlayer = level => {
     render() {
       this.context.save();
       this.context.translate(this.x, this.y);
-      this.image = playerImage;
+
       if (this.fallingToGround) {
         // Rotation is around top left corner, adjust accordingly:
         this.context.translate(0, this.height);
-
         this.context.rotate(-Math.PI / 2);
       } else if (this.moveVertical) {
-        this.image = playerverticalImage;
-      } else if (this.moveLeft) {
-        this.context.translate(this.image.width / 2, 0);
-        this.context.scale(-1, 1); // mirror player
-        this.context.translate(-this.image.width / 2, 0);
+        if (this.moveLeftFoot < 10) {
+          this.image = playerverticalImage;
+        } else {
+          this.image = playerverticalLeftfootImage;
+        }
+      } else {
+        if (this.moveLeft) {
+          this.context.translate(this.image.width / 2, 0);
+          this.context.scale(-1, 1); // mirror player
+          this.context.translate(-this.image.width / 2, 0);
+        }
+        if (this.moveLeftFoot < 10) {
+          this.image = playerImage;
+        } else {
+          this.image = playerLeftfootImage;
+        }
       }
+      if (this.moveLeftFoot > 20) this.moveLeftFoot = 0;
 
       // scale image to player size
       this.context.scale(
@@ -193,9 +209,11 @@ export const createPlayer = level => {
       if (keyPressed("left") && this.x > 0) {
         dx = -playerSpeed;
         this.moveLeft = true;
+        this.moveLeftFoot++;
       } else if (keyPressed("right") && this.x < level.width - this.width) {
         dx = playerSpeed;
         this.moveLeft = false;
+        this.moveLeftFoot++;
       }
 
       const upPressed = keyPressed("up");
@@ -207,6 +225,7 @@ export const createPlayer = level => {
       }
 
       if (upPressed && !this.stopClimbing) {
+        this.moveLeftFoot++;
         if (
           this.state === STATE_CLIMBING &&
           dx === 0 &&
