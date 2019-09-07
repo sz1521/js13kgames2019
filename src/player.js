@@ -61,6 +61,7 @@ export const createPlayer = level => {
     moveVertical: false,
     moveLeftFoot: 0,
     image: playerImage,
+    walkingSpeed: 5,
     ag: 2, // Anti-gravity status (0 = off, 1 = warn, 2 = on)
 
     isOnGround() {
@@ -77,7 +78,7 @@ export const createPlayer = level => {
         this.context.translate(0, this.height);
         this.context.rotate(-Math.PI / 2);
       } else if (this.moveVertical) {
-        if (this.moveLeftFoot < 10) {
+        if (this.moveLeftFoot < 5) {
           this.image = playerverticalImage;
         } else {
           this.image = playerverticalLeftfootImage;
@@ -88,13 +89,13 @@ export const createPlayer = level => {
           this.context.scale(-1, 1); // mirror player
           this.context.translate(-this.image.width / 2, 0);
         }
-        if (this.moveLeftFoot < 10) {
+        if (this.moveLeftFoot < this.walkingSpeed) {
           this.image = playerImage;
         } else {
           this.image = playerLeftfootImage;
         }
       }
-      if (this.moveLeftFoot > 20) this.moveLeftFoot = 0;
+      if (this.moveLeftFoot > this.walkingSpeed * 2) this.moveLeftFoot = 0;
 
       // scale image to player size
       this.context.scale(
