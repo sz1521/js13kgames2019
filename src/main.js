@@ -47,8 +47,8 @@ let player;
 let level = {
   left: 0,
   top: 0,
-  width: 2000,
-  height: 3000
+  width: 4000,
+  height: 4000
 };
 
 let camera = createCamera(level, canvas);
@@ -367,17 +367,12 @@ const createCloudLayer = y => {
   }
 };
 
-const createTower = () => {
-  ladders = [];
-  platforms = [];
-
-  const centerX = (level.width - level.left) / 2;
-
-  for (let i = 0; i < 8; i++) {
+const createTower = (x, floorCount) => {
+  for (let i = 0; i < floorCount; i++) {
     const floorWidth = 800;
     const floorHeight = 300;
     const floorTop = level.height - (i + 1) * floorHeight;
-    const floorLeft = centerX - floorWidth / 2;
+    const floorLeft = x - floorWidth / 2;
 
     let platform = createPlatform();
     platform.width = floorWidth;
@@ -403,12 +398,14 @@ const createTower = () => {
 };
 
 const initScene = () => {
+  ladders = [];
+  platforms = [];
   clouds0 = [];
   clouds1 = [];
+  backgroundObjects = [];
+
   createCloudLayer(200);
   createCloudLayer(800);
-
-  backgroundObjects = [];
 
   let house = Sprite({
     width: 80,
@@ -422,7 +419,8 @@ const initScene = () => {
   house.y = level.height - house.height;
   backgroundObjects.push(house);
 
-  createTower();
+  createTower(1400, 7);
+  createTower(2500, 10);
 
   player = createPlayer(level);
   player.x = 200;
