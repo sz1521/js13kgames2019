@@ -23,6 +23,9 @@
  */
 
 import { Sprite, keyPressed } from "kontra";
+import { imageFromSvg } from "./utils.js";
+import playerSvg from "./images/player.svg";
+import playerverticalSvg from "./images/player-vertical.svg";
 
 const playerSpeed = 5;
 const gravity = 2;
@@ -37,7 +40,10 @@ const STATE_FALLING = 1;
 const STATE_CLIMBING = 2;
 const STATE_DEAD = 3;
 
-export const createPlayer = (level, image) => {
+const playerImage = imageFromSvg(playerSvg);
+const playerverticalImage = imageFromSvg(playerverticalSvg);
+
+export const createPlayer = level => {
   return Sprite({
     color: "red",
     width: STANDING_WIDTH,
@@ -48,6 +54,7 @@ export const createPlayer = (level, image) => {
     stopClimbing: false,
     moveLeft: false,
     moveVertical: false,
+    image: playerImage,
 
     isOnGround() {
       const margin = 5;
@@ -57,26 +64,26 @@ export const createPlayer = (level, image) => {
     render() {
       this.context.save();
       this.context.translate(this.x, this.y);
-
+      this.image = playerImage;
       if (this.fallingToGround) {
         // Rotation is around top left corner, adjust accordingly:
         this.context.translate(0, this.height);
 
         this.context.rotate(-Math.PI / 2);
-      } else if (this.moveLeft) {
-        this.context.translate(image.width / 2, 0);
-        this.context.scale(-1, 1); // mirror player
-        this.context.translate(-image.width / 2, 0);
       } else if (this.moveVertical) {
-        // todo: change svg
+        this.image = playerverticalImage;
+      } else if (this.moveLeft) {
+        this.context.translate(this.image.width / 2, 0);
+        this.context.scale(-1, 1); // mirror player
+        this.context.translate(-this.image.width / 2, 0);
       }
 
       // scale image to player size
       this.context.scale(
-        STANDING_WIDTH / image.width,
-        STANDING_HEIGHT / image.height
+        STANDING_WIDTH / this.image.width,
+        STANDING_HEIGHT / this.image.height
       );
-      this.context.drawImage(image, 0, 0);
+      this.context.drawImage(this.image, 0, 0);
       this.context.restore();
     },
 
