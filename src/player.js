@@ -126,6 +126,8 @@ export const createPlayer = level => {
         }
       } else if (!ladderCollision.collision && this.state === STATE_CLIMBING) {
         this.state = STATE_FALLING;
+      } else if (this.vel > 60) {
+        this.fallingToGround = true;
       } else if (!this.fallingToGround) {
         movement = this.handleControls(ladderCollision, platform);
       }
