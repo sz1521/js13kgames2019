@@ -53,7 +53,8 @@ export const createPlayer = level => {
   return Sprite({
     width: STANDING_WIDTH,
     height: STANDING_HEIGHT,
-    vel: 0, // Vertical velocity, affected by jumping and gravity
+    xVel: 0, // Horizontal velocity
+    yVel: 0, // Vertical velocity, affected by jumping and gravity
     state: STATE_ON_PLATFORM,
     fallingToGround: false,
     stopClimbing: false,
@@ -124,6 +125,10 @@ export const createPlayer = level => {
       return { collision, collidesHigh };
     },
 
+    hit() {
+      this.xVel = 20;
+    },
+
     update(ladders, platforms, hittingEnemy, camera) {
       if (this.state === STATE_DEAD) {
         return;
@@ -142,7 +147,7 @@ export const createPlayer = level => {
         }
       } else if (!ladderCollision.collision && this.state === STATE_CLIMBING) {
         this.state = STATE_FALLING;
-      } else if (this.vel > 60) {
+      } else if (this.yVel > 60) {
         this.fallingToGround = true;
       } else if (!this.fallingToGround) {
         movement = this.handleControls(ladderCollision, platform);
@@ -150,9 +155,18 @@ export const createPlayer = level => {
 
       let { dx, dy } = movement;
 
+      if (this.xVel !== 0) {
+        dx += this.xVel;
+        if (this.xVel > 4) {
+          this.xVel *= 0.97; // friction
+        } else {
+          this.xVel = 0;
+        }
+      }
+
       if (this.state === STATE_FALLING) {
-        this.vel += this.ag > 0 ? SMALL_GRAVITY : GRAVITY;
-        dy += this.vel;
+        this.yVel += this.ag > 0 ? SMALL_GRAVITY : GRAVITY;
+        dy += this.yVel;
       }
 
       if (dx !== 0) {
@@ -170,7 +184,7 @@ export const createPlayer = level => {
           this.state = STATE_ON_PLATFORM;
         }
 
-        this.vel = 0;
+        this.yVel = 0;
       } else if (this.fallingToGround) {
         this.state = STATE_FALLING;
         this.y += dy;
@@ -181,7 +195,7 @@ export const createPlayer = level => {
         // between standing and free falling.
         const margin = 5;
         this.y = platform.y - this.height + margin;
-        this.vel = 0;
+        this.yVel = 0;
         this.state = STATE_ON_PLATFORM;
       } else {
         this.state = STATE_FALLING;
@@ -193,7 +207,7 @@ export const createPlayer = level => {
       const topVel = 80;
       const maxPower = 20;
       const scaledPower =
-        (Math.min(topVel, Math.max(this.vel - 20, 0)) / topVel) * maxPower;
+        (Math.min(topVel, Math.max(this.yVel - 20, 0)) / topVel) * maxPower;
       camera.shake(scaledPower, 0.5);
     },
 
@@ -241,18 +255,18 @@ export const createPlayer = level => {
           (platform || this.isOnGround()) &&
           !(dx === 0 && ladderCollision.collidesHigh)
         ) {
-          this.vel = JUMP_VELOCITY;
+          this.yVel = JUMP_VELOCITY;
           this.state = STATE_FALLING;
-        } else if (this.vel >= 0 && ladderCollision.collision) {
+        } else if (this.yVel >= 0 && ladderCollision.collision) {
           // Climb when not jumping
           this.state = STATE_CLIMBING;
-          this.vel = 0;
+          this.yVel = 0;
           dy -= CLIMB_SPEED;
         }
         if (this.state === STATE_CLIMBING) this.moveLeftFoot++;
       } else if (keyPressed("down") && ladderCollision.collision) {
         this.state = STATE_CLIMBING;
-        this.vel = 0;
+        this.yVel = 0;
         dy += CLIMB_SPEED;
         this.moveLeftFoot++;
       }
