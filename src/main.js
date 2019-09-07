@@ -112,54 +112,69 @@ let loop = GameLoop({
     context.scale(camera.zoom, camera.zoom);
     context.translate(-camera.x, -camera.y);
 
-    for (let i = 0; i < clouds0.length; i++) {
-      let cloud0 = clouds0[i];
-      cloud0.render();
-    }
-
-    for (let i = 0; i < backgroundObjects.length; i++) {
-      let object = backgroundObjects[i];
-      object.render();
-    }
-
-    for (let i = 0; i < ladders.length; i++) {
-      let ladder = ladders[i];
-      ladder.render();
-    }
-
-    for (let i = 0; i < platforms.length; i++) {
-      platforms[i].render();
-    }
-
-    for (let i = 0; i < enemies.length; i++) {
-      enemies[i].render();
-    }
-
-    player.render();
-
-    for (let i = 0; i < clouds1.length; i++) {
-      let cloud1 = clouds1[i];
-      cloud1.render();
-    }
-
-    // Draw level borders for debugging
-    if (!camera.target) {
-      context.save();
-      context.strokeStyle = "red";
-      context.lineWidth = 5;
-      context.beginPath();
-      context.lineTo(0, 0);
-      context.lineTo(level.width, 0);
-      context.lineTo(level.width, level.height);
-      context.lineTo(0, level.height);
-      context.closePath();
-      context.stroke();
-      context.restore();
-    }
+    renderWorldObjects();
 
     context.restore();
+
+    renderUi();
   }
 });
+
+const renderWorldObjects = () => {
+  for (let i = 0; i < clouds0.length; i++) {
+    let cloud0 = clouds0[i];
+    cloud0.render();
+  }
+
+  for (let i = 0; i < backgroundObjects.length; i++) {
+    let object = backgroundObjects[i];
+    object.render();
+  }
+
+  for (let i = 0; i < ladders.length; i++) {
+    let ladder = ladders[i];
+    ladder.render();
+  }
+
+  for (let i = 0; i < platforms.length; i++) {
+    platforms[i].render();
+  }
+
+  for (let i = 0; i < enemies.length; i++) {
+    enemies[i].render();
+  }
+
+  player.render();
+
+  for (let i = 0; i < clouds1.length; i++) {
+    let cloud1 = clouds1[i];
+    cloud1.render();
+  }
+
+  // Draw level borders for debugging
+  if (!camera.target) {
+    context.save();
+    context.strokeStyle = "red";
+    context.lineWidth = 5;
+    context.beginPath();
+    context.lineTo(0, 0);
+    context.lineTo(level.width, 0);
+    context.lineTo(level.width, level.height);
+    context.lineTo(0, level.height);
+    context.closePath();
+    context.stroke();
+    context.restore();
+  }
+};
+
+const renderUi = () => {
+  if (player.ag > 0) {
+    context.fillStyle = "white";
+    context.font = "22px Sans-serif";
+
+    context.fillText("ANTI-GRAVITY", 50, 100);
+  }
+};
 
 const createCloud = (y, z) => {
   if (z === 0) {
@@ -462,6 +477,10 @@ bindKeys(["s"], () => {
 // Actual keys
 bindKeys(["enter"], () => {
   startGame();
+});
+
+bindKeys(["a"], () => {
+  player.ag = player.ag === 2 ? 0 : 2;
 });
 
 context.fillStyle = "red";
