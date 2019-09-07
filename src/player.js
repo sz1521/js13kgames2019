@@ -30,11 +30,11 @@ import playerverticalSvg from "./images/player-vertical.svg";
 import playerverticalLeftfootSvg from "./images/player-vertical-leftfoot.svg";
 
 const PLAYER_SPEED = 7;
-const JUMP_VELOCITY = -25;
+const JUMP_VELOCITY = -15;
 const CLIMB_SPEED = 2;
 
 const GRAVITY = 2;
-const SMALL_GRAVITY = 0.8;
+const SMALL_GRAVITY = 0.5;
 
 const STANDING_WIDTH = 30;
 const STANDING_HEIGHT = 90;
