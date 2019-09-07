@@ -34,6 +34,9 @@ const STATE_FALLING = 1;
 const STATE_CLIMBING = 2;
 const STATE_DEAD = 3;
 
+let moveLeft = false;
+let moveVertical = false;
+
 export const createPlayer = (level, image) => {
   return Sprite({
     color: "red",
@@ -52,12 +55,17 @@ export const createPlayer = (level, image) => {
     render() {
       this.context.save();
       this.context.translate(this.x, this.y);
+      this.context.scale(1, 1);
 
       if (this.fallingToGround) {
         // Rotation is around top left corner, adjust accordingly:
         this.context.translate(0, this.height);
 
         this.context.rotate(-Math.PI / 2);
+      } else if (moveLeft) {
+        this.context.scale(-1, 1); // mirror player
+      } else if (moveVertical) {
+        // todo: change svg
       }
 
       this.context.drawImage(image, 0, 0);
@@ -66,11 +74,13 @@ export const createPlayer = (level, image) => {
 
     findLadderCollision(ladders) {
       let collision, collidesHigh;
+      moveVertical = false;
 
       for (let i = 0; i < ladders.length; i++) {
         let ladder = ladders[i];
 
         if (ladder.collidesWith(this)) {
+          moveVertical = true;
           collision = true;
 
           if (ladder.y < this.y && this.y < ladder.y + ladder.height) {
@@ -167,8 +177,10 @@ export const createPlayer = (level, image) => {
 
       if (keyPressed("left") && this.x > 0) {
         dx = -playerSpeed;
+        moveLeft = true;
       } else if (keyPressed("right") && this.x < level.width - this.width) {
         dx = playerSpeed;
+        moveLeft = false;
       }
 
       const upPressed = keyPressed("up");

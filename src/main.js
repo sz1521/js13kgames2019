@@ -478,4 +478,8 @@ bindKeys(["enter"], () => {
 
 context.fillStyle = "red";
 context.font = "22px Sans-serif";
-context.fillText("Press enter to start", 100, 100);
+context.fillText(
+  "Press enter to start",
+  canvas.width / 2 - 100,
+  canvas.height / 2
+);
