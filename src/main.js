@@ -34,7 +34,12 @@ let { canvas, context } = init();
 
 initKeys();
 
+const FRAMES_PER_SECOND = 60;
+const SECONDS_PER_FRAME = 1 / FRAMES_PER_SECOND;
 const TIME_BACK_MAX_SECONDS = 3;
+
+const ANTI_GRAVITY_WARN_TIME = 0.5;
+const ANTI_GRAVITY_DRAIN_TIME = 1.5;
 
 let clouds0 = [];
 let clouds1 = [];
@@ -64,7 +69,7 @@ const timeTravelUpdate = (entity, back) => {
       entity.position = position;
     }
   } else {
-    const maxLength = TIME_BACK_MAX_SECONDS * 60;
+    const maxLength = TIME_BACK_MAX_SECONDS * FRAMES_PER_SECOND;
     entity.positions.push(entity.position);
     if (entity.positions.length > maxLength) {
       entity.positions.shift();
@@ -74,9 +79,38 @@ const timeTravelUpdate = (entity, back) => {
   }
 };
 
+let backTime = 0;
+let agOffStartTime = null;
+
+const updateAntiGravityState = back => {
+  let now = performance.now();
+
+  if (back) {
+    backTime += SECONDS_PER_FRAME;
+
+    if (backTime > ANTI_GRAVITY_DRAIN_TIME) {
+      player.ag = 0;
+      agOffStartTime = now;
+    } else if (backTime > ANTI_GRAVITY_WARN_TIME) {
+      player.ag = 1;
+    }
+  } else {
+    backTime = Math.max(0, backTime - SECONDS_PER_FRAME);
+
+    if (agOffStartTime && now - agOffStartTime > 2000) {
+      player.ag = 2;
+      agOffStartTime = null;
+    } else if (player.ag === 1 && backTime <= ANTI_GRAVITY_WARN_TIME) {
+      player.ag = 2;
+    }
+  }
+};
+
 let loop = GameLoop({
   update() {
     const back = keyPressed("space");
+
+    updateAntiGravityState(back);
 
     for (let i = 0; i < clouds0.length; i++) {
       timeTravelUpdate(clouds0[i], back);
@@ -169,7 +203,7 @@ const renderWorldObjects = () => {
 
 const renderUi = () => {
   if (player.ag > 0) {
-    context.fillStyle = "white";
+    context.fillStyle = player.ag === 2 ? "white" : "red";
     context.font = "22px Sans-serif";
 
     context.fillText("ANTI-GRAVITY", 50, 100);
@@ -438,7 +472,7 @@ const initScene = () => {
   createTower(2500, 10);
 
   player = createPlayer(level);
-  player.x = 200;
+  player.x = 900;
   player.y = level.height - player.height;
 
   camera.follow(player);

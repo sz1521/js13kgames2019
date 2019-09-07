@@ -56,7 +56,7 @@ export const createPlayer = level => {
     moveLeft: false,
     moveVertical: false,
     image: playerImage,
-    ag: 2, // Anti-gravity status
+    ag: 2, // Anti-gravity status (0 = off, 1 = warn, 2 = on)
 
     isOnGround() {
       const margin = 5;
