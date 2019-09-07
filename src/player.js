@@ -213,11 +213,11 @@ export const createPlayer = level => {
       if (keyPressed("left") && this.x > 0) {
         dx = -PLAYER_SPEED;
         this.moveLeft = true;
-        this.moveLeftFoot++;
+        if (this.state !== STATE_FALLING) this.moveLeftFoot++;
       } else if (keyPressed("right") && this.x < level.width - this.width) {
         dx = PLAYER_SPEED;
         this.moveLeft = false;
-        this.moveLeftFoot++;
+        if (this.state !== STATE_FALLING) this.moveLeftFoot++;
       }
 
       const upPressed = keyPressed("up");
@@ -239,7 +239,6 @@ export const createPlayer = level => {
           // unless another ladder continues from there.
           this.state = STATE_ON_PLATFORM;
           this.stopClimbing = true;
-          this.moveLeftFoot++;
         } else if (
           this.state !== STATE_FALLING &&
           (platform || this.isOnGround()) &&
@@ -253,6 +252,7 @@ export const createPlayer = level => {
           this.vel = 0;
           dy -= CLIMB_SPEED;
         }
+        if (this.state === STATE_CLIMBING) this.moveLeftFoot++;
       } else if (keyPressed("down") && ladderCollision.collision) {
         this.state = STATE_CLIMBING;
         this.vel = 0;
