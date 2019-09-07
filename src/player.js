@@ -229,7 +229,6 @@ export const createPlayer = level => {
       }
 
       if (upPressed && !this.stopClimbing) {
-        this.moveLeftFoot++;
         if (
           this.state === STATE_CLIMBING &&
           dx === 0 &&
@@ -240,6 +239,7 @@ export const createPlayer = level => {
           // unless another ladder continues from there.
           this.state = STATE_ON_PLATFORM;
           this.stopClimbing = true;
+          this.moveLeftFoot++;
         } else if (
           this.state !== STATE_FALLING &&
           (platform || this.isOnGround()) &&
