@@ -26,8 +26,11 @@ import { Sprite, keyPressed } from "kontra";
 
 const playerSpeed = 5;
 const gravity = 2;
-const jumpVelocity = -30;
+const jumpVelocity = -25;
 const climbSpeed = 2;
+
+const STANDING_WIDTH = 30;
+const STANDING_HEIGHT = 90;
 
 const STATE_ON_PLATFORM = 0;
 const STATE_FALLING = 1;
@@ -37,8 +40,8 @@ const STATE_DEAD = 3;
 export const createPlayer = (level, image) => {
   return Sprite({
     color: "red",
-    width: 50,
-    height: 150,
+    width: STANDING_WIDTH,
+    height: STANDING_HEIGHT,
     vel: 0, // Vertical velocity, affected by jumping and gravity
     state: STATE_ON_PLATFORM,
     fallingToGround: false,
@@ -68,6 +71,11 @@ export const createPlayer = (level, image) => {
         // todo: change svg
       }
 
+      // scale image to player size
+      this.context.scale(
+        STANDING_WIDTH / image.width,
+        STANDING_HEIGHT / image.height
+      );
       this.context.drawImage(image, 0, 0);
       this.context.restore();
     },
