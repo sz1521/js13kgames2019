@@ -58,7 +58,6 @@ export const createPlayer = level => {
     fallingToGround: false,
     stopClimbing: false,
     moveLeft: false,
-    moveVertical: false,
     moveLeftFoot: 0,
     image: playerImage,
     walkingSpeed: 5,
@@ -77,7 +76,7 @@ export const createPlayer = level => {
         // Rotation is around top left corner, adjust accordingly:
         this.context.translate(0, this.height);
         this.context.rotate(-Math.PI / 2);
-      } else if (this.moveVertical) {
+      } else if (this.state === STATE_CLIMBING) {
         if (this.moveLeftFoot < 5) {
           this.image = playerverticalImage;
         } else {
@@ -108,13 +107,11 @@ export const createPlayer = level => {
 
     findLadderCollision(ladders) {
       let collision, collidesHigh;
-      this.moveVertical = false;
 
       for (let i = 0; i < ladders.length; i++) {
         let ladder = ladders[i];
 
         if (ladder.collidesWith(this)) {
-          this.moveVertical = true;
           collision = true;
 
           if (ladder.y < this.y && this.y < ladder.y + ladder.height) {
@@ -228,7 +225,6 @@ export const createPlayer = level => {
         // the stairs.
         this.stopClimbing = false;
       }
-
       if (upPressed && !this.stopClimbing) {
         if (
           this.state === STATE_CLIMBING &&
@@ -258,6 +254,7 @@ export const createPlayer = level => {
         this.state = STATE_CLIMBING;
         this.vel = 0;
         dy += CLIMB_SPEED;
+        this.moveLeftFoot++;
       }
 
       return { dx, dy };
