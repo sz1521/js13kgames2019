@@ -43,6 +43,8 @@ export const createPlayer = (level, image) => {
     state: STATE_ON_PLATFORM,
     fallingToGround: false,
     stopClimbing: false,
+    moveLeft: false,
+    moveVertical: false,
 
     isOnGround() {
       const margin = 5;
@@ -58,6 +60,12 @@ export const createPlayer = (level, image) => {
         this.context.translate(0, this.height);
 
         this.context.rotate(-Math.PI / 2);
+      } else if (this.moveLeft) {
+        this.context.translate(image.width / 2, 0);
+        this.context.scale(-1, 1); // mirror player
+        this.context.translate(-image.width / 2, 0);
+      } else if (this.moveVertical) {
+        // todo: change svg
       }
 
       this.context.drawImage(image, 0, 0);
@@ -66,11 +74,13 @@ export const createPlayer = (level, image) => {
 
     findLadderCollision(ladders) {
       let collision, collidesHigh;
+      this.moveVertical = false;
 
       for (let i = 0; i < ladders.length; i++) {
         let ladder = ladders[i];
 
         if (ladder.collidesWith(this)) {
+          this.moveVertical = true;
           collision = true;
 
           if (ladder.y < this.y && this.y < ladder.y + ladder.height) {
@@ -167,8 +177,10 @@ export const createPlayer = (level, image) => {
 
       if (keyPressed("left") && this.x > 0) {
         dx = -playerSpeed;
+        this.moveLeft = true;
       } else if (keyPressed("right") && this.x < level.width - this.width) {
         dx = playerSpeed;
+        this.moveLeft = false;
       }
 
       const upPressed = keyPressed("up");
