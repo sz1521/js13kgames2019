@@ -25,26 +25,16 @@ import { init, Sprite, GameLoop, bindKeys, keyPressed, initKeys } from "kontra";
 import { createCamera } from "./camera.js";
 import { createPlayer } from "./player.js";
 import { createEnemy } from "./enemy.js";
-import playerSvg from "./images/player.svg";
+import { imageFromSvg } from "./utils.js";
 import houseSvg from "./images/house.svg";
 import { initialize, playTune } from "./music.js";
-
-const imageFromSvg = svgString => {
-  let image = new Image();
-  const svgInBase64 = btoa(svgString);
-  const base64Header = "data:image/svg+xml;base64,";
-  image.src = base64Header + svgInBase64;
-  return image;
-};
+const houseImage = imageFromSvg(houseSvg);
 
 let { canvas, context } = init();
 
 initKeys();
 
 const TIME_BACK_MAX_SECONDS = 3;
-
-let playerImage = imageFromSvg(playerSvg);
-let houseImage = imageFromSvg(houseSvg);
 
 let clouds0 = [];
 let clouds1 = [];
@@ -434,7 +424,7 @@ const initScene = () => {
 
   createTower();
 
-  player = createPlayer(level, playerImage);
+  player = createPlayer(level);
   player.x = 200;
   player.y = level.height - player.height;
 
