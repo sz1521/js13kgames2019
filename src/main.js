@@ -34,7 +34,12 @@ let { canvas, context } = init();
 
 initKeys();
 
+const FRAMES_PER_SECOND = 60;
+const SECONDS_PER_FRAME = 1 / FRAMES_PER_SECOND;
 const TIME_BACK_MAX_SECONDS = 3;
+
+const ANTI_GRAVITY_WARN_TIME = 0.5;
+const ANTI_GRAVITY_DRAIN_TIME = 1.5;
 
 let clouds0 = [];
 let clouds1 = [];
@@ -47,8 +52,8 @@ let player;
 let level = {
   left: 0,
   top: 0,
-  width: 2000,
-  height: 3000
+  width: 4000,
+  height: 4000
 };
 
 let camera = createCamera(level, canvas);
@@ -64,7 +69,7 @@ const timeTravelUpdate = (entity, back) => {
       entity.position = position;
     }
   } else {
-    const maxLength = TIME_BACK_MAX_SECONDS * 60;
+    const maxLength = TIME_BACK_MAX_SECONDS * FRAMES_PER_SECOND;
     entity.positions.push(entity.position);
     if (entity.positions.length > maxLength) {
       entity.positions.shift();
@@ -74,9 +79,38 @@ const timeTravelUpdate = (entity, back) => {
   }
 };
 
+let backTime = 0;
+let agOffStartTime = null;
+
+const updateAntiGravityState = back => {
+  let now = performance.now();
+
+  if (back) {
+    backTime += SECONDS_PER_FRAME;
+
+    if (backTime > ANTI_GRAVITY_DRAIN_TIME) {
+      player.ag = 0;
+      agOffStartTime = now;
+    } else if (backTime > ANTI_GRAVITY_WARN_TIME) {
+      player.ag = 1;
+    }
+  } else {
+    backTime = Math.max(0, backTime - SECONDS_PER_FRAME);
+
+    if (agOffStartTime && now - agOffStartTime > 2000) {
+      player.ag = 2;
+      agOffStartTime = null;
+    } else if (player.ag === 1 && backTime <= ANTI_GRAVITY_WARN_TIME) {
+      player.ag = 2;
+    }
+  }
+};
+
 let loop = GameLoop({
   update() {
     const back = keyPressed("space");
+
+    updateAntiGravityState(back);
 
     for (let i = 0; i < clouds0.length; i++) {
       timeTravelUpdate(clouds0[i], back);
@@ -112,54 +146,69 @@ let loop = GameLoop({
     context.scale(camera.zoom, camera.zoom);
     context.translate(-camera.x, -camera.y);
 
-    for (let i = 0; i < clouds0.length; i++) {
-      let cloud0 = clouds0[i];
-      cloud0.render();
-    }
-
-    for (let i = 0; i < backgroundObjects.length; i++) {
-      let object = backgroundObjects[i];
-      object.render();
-    }
-
-    for (let i = 0; i < ladders.length; i++) {
-      let ladder = ladders[i];
-      ladder.render();
-    }
-
-    for (let i = 0; i < platforms.length; i++) {
-      platforms[i].render();
-    }
-
-    for (let i = 0; i < enemies.length; i++) {
-      enemies[i].render();
-    }
-
-    player.render();
-
-    for (let i = 0; i < clouds1.length; i++) {
-      let cloud1 = clouds1[i];
-      cloud1.render();
-    }
-
-    // Draw level borders for debugging
-    if (!camera.target) {
-      context.save();
-      context.strokeStyle = "red";
-      context.lineWidth = 5;
-      context.beginPath();
-      context.lineTo(0, 0);
-      context.lineTo(level.width, 0);
-      context.lineTo(level.width, level.height);
-      context.lineTo(0, level.height);
-      context.closePath();
-      context.stroke();
-      context.restore();
-    }
+    renderWorldObjects();
 
     context.restore();
+
+    renderUi();
   }
 });
+
+const renderWorldObjects = () => {
+  for (let i = 0; i < clouds0.length; i++) {
+    let cloud0 = clouds0[i];
+    cloud0.render();
+  }
+
+  for (let i = 0; i < backgroundObjects.length; i++) {
+    let object = backgroundObjects[i];
+    object.render();
+  }
+
+  for (let i = 0; i < ladders.length; i++) {
+    let ladder = ladders[i];
+    ladder.render();
+  }
+
+  for (let i = 0; i < platforms.length; i++) {
+    platforms[i].render();
+  }
+
+  for (let i = 0; i < enemies.length; i++) {
+    enemies[i].render();
+  }
+
+  player.render();
+
+  for (let i = 0; i < clouds1.length; i++) {
+    let cloud1 = clouds1[i];
+    cloud1.render();
+  }
+
+  // Draw level borders for debugging
+  if (!camera.target) {
+    context.save();
+    context.strokeStyle = "red";
+    context.lineWidth = 5;
+    context.beginPath();
+    context.lineTo(0, 0);
+    context.lineTo(level.width, 0);
+    context.lineTo(level.width, level.height);
+    context.lineTo(0, level.height);
+    context.closePath();
+    context.stroke();
+    context.restore();
+  }
+};
+
+const renderUi = () => {
+  if (player.ag > 0) {
+    context.fillStyle = player.ag === 2 ? "white" : "red";
+    context.font = "22px Sans-serif";
+
+    context.fillText("ANTI-GRAVITY", 50, 100);
+  }
+};
 
 const createCloud = (y, z) => {
   if (z === 0) {
@@ -367,17 +416,12 @@ const createCloudLayer = y => {
   }
 };
 
-const createTower = () => {
-  ladders = [];
-  platforms = [];
-
-  const centerX = (level.width - level.left) / 2;
-
-  for (let i = 0; i < 8; i++) {
+const createTower = (x, floorCount) => {
+  for (let i = 0; i < floorCount; i++) {
     const floorWidth = 800;
     const floorHeight = 300;
     const floorTop = level.height - (i + 1) * floorHeight;
-    const floorLeft = centerX - floorWidth / 2;
+    const floorLeft = x - floorWidth / 2;
 
     let platform = createPlatform();
     platform.width = floorWidth;
@@ -403,12 +447,14 @@ const createTower = () => {
 };
 
 const initScene = () => {
+  ladders = [];
+  platforms = [];
   clouds0 = [];
   clouds1 = [];
+  backgroundObjects = [];
+
   createCloudLayer(200);
   createCloudLayer(800);
-
-  backgroundObjects = [];
 
   let house = Sprite({
     width: 80,
@@ -422,10 +468,11 @@ const initScene = () => {
   house.y = level.height - house.height;
   backgroundObjects.push(house);
 
-  createTower();
+  createTower(1400, 7);
+  createTower(2500, 10);
 
   player = createPlayer(level);
-  player.x = 200;
+  player.x = 900;
   player.y = level.height - player.height;
 
   camera.follow(player);
@@ -464,6 +511,10 @@ bindKeys(["s"], () => {
 // Actual keys
 bindKeys(["enter"], () => {
   startGame();
+});
+
+bindKeys(["a"], () => {
+  player.ag = player.ag === 2 ? 0 : 2;
 });
 
 context.fillStyle = "red";
