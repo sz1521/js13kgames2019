@@ -106,7 +106,7 @@ export const createPlayer = level => {
       this.context.restore();
     },
 
-    findLadderCollision(ladders) {
+    _findLadderCollision(ladders) {
       let collision, collidesHigh;
 
       for (let i = 0; i < ladders.length; i++) {
@@ -136,18 +136,18 @@ export const createPlayer = level => {
         return;
       }
 
-      const platform = this.findPlatform(platforms);
+      const platform = this._findPlatform(platforms);
       let movement = { dx: 0, dy: 0 };
 
-      let ladderCollision = this.findLadderCollision(ladders);
+      let ladderCollision = this._findLadderCollision(ladders);
 
       if (!ladderCollision.collision && this.state === STATE_CLIMBING) {
         this.state = STATE_FALLING;
       } else if (this.yVel > 60) {
         this.fallingToGround = true;
-        this.turnHorizontally();
+        this._turnHorizontally();
       } else if (!this.fallingToGround) {
-        movement = this.handleControls(ladderCollision, platform);
+        movement = this._handleControls(ladderCollision, platform);
       }
 
       let { dx, dy } = movement;
@@ -166,44 +166,8 @@ export const createPlayer = level => {
         dy += this.yVel;
       }
 
-      if (this.x + dx > level.width - this.width) {
-        this.x = level.width - this.width;
-        this.xVel = 0;
-      } else if (this.x + dx < level.left) {
-        this.x = level.left;
-        this.xVel = 0;
-      } else if (dx !== 0) {
-        this.x += dx;
-      }
-
-      if (this.y + dy > level.height - this.height) {
-        // hits ground
-        this.y = level.height - this.height;
-
-        if (this.fallingToGround) {
-          this._screenShake(camera);
-          this.state = STATE_DEAD;
-        } else {
-          this.state = STATE_ON_PLATFORM;
-        }
-
-        this.yVel = 0;
-      } else if (this.fallingToGround) {
-        this.state = STATE_FALLING;
-        this.y += dy;
-      } else if (this.state === STATE_CLIMBING) {
-        this.y += dy;
-      } else if (dy > 0 && platform) {
-        // Margin so that the player does not constantly toggle
-        // between standing and free falling.
-        const margin = 5;
-        this.y = platform.y - this.height + margin;
-        this.yVel = 0;
-        this.state = STATE_ON_PLATFORM;
-      } else {
-        this.state = STATE_FALLING;
-        this.y += dy;
-      }
+      this._updateHorizontalPosition(dx);
+      this._updateVerticalPosition(camera, platform, dy);
     },
 
     _screenShake(camera) {
@@ -214,14 +178,14 @@ export const createPlayer = level => {
       camera.shake(scaledPower, 0.5);
     },
 
-    turnHorizontally() {
+    _turnHorizontally() {
       let oldWidth = this.width,
         oldHeight = this.height;
       this.width = oldHeight;
       this.height = oldWidth;
     },
 
-    handleControls(ladderCollision, platform) {
+    _handleControls(ladderCollision, platform) {
       let dx = 0;
       let dy = 0;
 
@@ -277,7 +241,50 @@ export const createPlayer = level => {
       return { dx, dy };
     },
 
-    findPlatform(platforms) {
+    _updateHorizontalPosition(dx) {
+      if (this.x + dx > level.width - this.width) {
+        this.x = level.width - this.width;
+        this.xVel = 0;
+      } else if (this.x + dx < level.left) {
+        this.x = level.left;
+        this.xVel = 0;
+      } else if (dx !== 0) {
+        this.x += dx;
+      }
+    },
+
+    _updateVerticalPosition(camera, platform, dy) {
+      if (this.y + dy > level.height - this.height) {
+        // hits ground
+        this.y = level.height - this.height;
+
+        if (this.fallingToGround) {
+          this._screenShake(camera);
+          this.state = STATE_DEAD;
+        } else {
+          this.state = STATE_ON_PLATFORM;
+        }
+
+        this.yVel = 0;
+      } else if (this.fallingToGround) {
+        this.state = STATE_FALLING;
+        this.y += dy;
+      } else if (this.state === STATE_CLIMBING) {
+        this.y += dy;
+      } else if (dy > 0 && platform) {
+        // Margin so that the player does not constantly toggle
+        // between standing and free falling.
+        const margin = 5;
+        this.y = platform.y - this.height + margin;
+        this.yVel = 0;
+        this.state = STATE_ON_PLATFORM;
+      } else {
+        this.state = STATE_FALLING;
+        this.y += dy;
+      }
+    },
+
+    _findPlatform(platforms) {
       for (let i = 0; i < platforms.length; i++) {
         let platform = platforms[i];
         if (this.collidesWith(platform)) {
