@@ -70,6 +70,10 @@ export const createPlayer = level => {
       return this.y + this.height > level.height - margin;
     },
 
+    isDead() {
+      return this.state === STATE_DEAD;
+    },
+
     render() {
       this.context.save();
       this.context.translate(this.x, this.y);
