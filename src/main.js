@@ -211,167 +211,89 @@ const renderUi = () => {
 };
 
 const createCloud = (y, z) => {
-  if (z === 0) {
-    return Sprite({
-      x: Math.random() * level.width * (5 / 4) - level.width / 4,
-      y: y + (Math.random() * 200 - 102120),
-      color: "white",
-      opacity: 0.95,
-      dx: 0.07 + Math.random() * 0.1,
-      radius: 20 + Math.random() * Math.random() * 70,
+  return Sprite({
+    x: Math.random() * level.width * (5 / 4) - level.width / 4,
+    y:
+      z === 0
+        ? y + (Math.random() * 200 - 102120)
+        : y + (Math.random() * 200 - 100),
+    color: "white",
+    opacity: z === 0 ? 0.95 : 0.7,
+    dx: z === 0 ? 0.07 + Math.random() * 0.1 : 0.05 + Math.random() * 0.1,
+    radius: 20 + Math.random() * Math.random() * 70,
 
-      update: function() {
-        this.advance();
-        if (this.x - 300 > level.width) {
-          this.x = -600;
-        }
-      },
+    update: function() {
+      this.advance();
+      if (this.x - 300 > level.width) {
+        this.x = -600;
+      }
+    },
 
-      render: function() {
-        let cx = this.context;
-        cx.save();
-        cx.fillStyle = this.color;
-        (cx.globalAlpha = this.opacity), cx.beginPath();
-        cx.beginPath();
-        let startX = this.x;
-        let startY = this.y;
-        cx.moveTo(startX, startY);
+    render: function() {
+      let cx = this.context;
+      cx.save();
+      cx.fillStyle = this.color;
+      (cx.globalAlpha = this.opacity), cx.beginPath();
+      cx.beginPath();
+      let startX = this.x;
+      let startY = this.y;
+      cx.moveTo(startX, startY);
+      cx.bezierCurveTo(
+        startX - 40,
+        startY + 20,
+        startX - 40,
+        startY + 70,
+        startX + 60,
+        startY + 70
+      );
+      if (this.radius < 45) {
         cx.bezierCurveTo(
-          startX - 40,
-          startY + 20,
-          startX - 40,
-          startY + 70,
-          startX + 60,
+          startX + 80,
+          startY + 100,
+          startX + 150,
+          startY + 100,
+          startX + 170,
           startY + 70
         );
-        if (this.radius < 45) {
-          cx.bezierCurveTo(
-            startX + 80,
-            startY + 100,
-            startX + 150,
-            startY + 100,
-            startX + 170,
-            startY + 70
-          );
-        }
-        cx.bezierCurveTo(
-          startX + 250,
-          startY + 70,
-          startX + 250,
-          startY + 40,
-          startX + 220,
-          startY + 20
-        );
-        cx.bezierCurveTo(
-          startX + 260,
-          startY - 40,
-          startX + 200,
-          startY - 50,
-          startX + 170,
-          startY - 40
-        );
-        cx.bezierCurveTo(
-          startX + 150,
-          startY - 75,
-          startX + 80,
-          startY - 60,
-          startX + 80,
-          startY - 40
-        );
-        cx.bezierCurveTo(
-          startX + 30,
-          startY - 75,
-          startX - 20,
-          startY - 60,
-          startX,
-          startY
-        );
-        cx.closePath();
-        cx.fill();
-        cx.restore();
       }
-    });
-  } else {
-    return Sprite({
-      x: Math.random() * level.width * (5 / 4) - level.width / 4,
-      y: y + (Math.random() * 200 - 100),
-      color: "white",
-      opacity: 0.7,
-      dx: 0.05 + Math.random() * 0.1,
-      radius: 20 + Math.random() * Math.random() * 70,
+      cx.bezierCurveTo(
+        startX + 250,
+        startY + 70,
+        startX + 250,
+        startY + 40,
+        startX + 220,
+        startY + 20
+      );
+      cx.bezierCurveTo(
+        startX + 260,
+        startY - 40,
+        startX + 200,
+        startY - 50,
+        startX + 170,
+        startY - 40
+      );
+      cx.bezierCurveTo(
+        startX + 150,
+        startY - 75,
+        startX + 80,
+        startY - 60,
+        startX + 80,
+        startY - 40
+      );
+      cx.bezierCurveTo(
+        startX + 30,
+        startY - 75,
+        startX - 20,
+        startY - 60,
+        startX,
+        startY
+      );
 
-      update: function() {
-        this.advance();
-        if (this.x - 300 > level.width) {
-          this.x = -600;
-        }
-      },
-
-      render: function() {
-        let cx = this.context;
-        cx.save();
-        cx.fillStyle = this.color;
-        (cx.globalAlpha = this.opacity), cx.beginPath();
-        cx.beginPath();
-        let startX = this.x;
-        let startY = this.y;
-        cx.moveTo(startX, startY);
-        cx.bezierCurveTo(
-          startX - 40,
-          startY + 20,
-          startX - 40,
-          startY + 70,
-          startX + 60,
-          startY + 70
-        );
-        if (this.radius < 45) {
-          cx.bezierCurveTo(
-            startX + 80,
-            startY + 100,
-            startX + 150,
-            startY + 100,
-            startX + 170,
-            startY + 70
-          );
-        }
-        cx.bezierCurveTo(
-          startX + 250,
-          startY + 70,
-          startX + 250,
-          startY + 40,
-          startX + 220,
-          startY + 20
-        );
-        cx.bezierCurveTo(
-          startX + 260,
-          startY - 40,
-          startX + 200,
-          startY - 50,
-          startX + 170,
-          startY - 40
-        );
-        cx.bezierCurveTo(
-          startX + 150,
-          startY - 75,
-          startX + 80,
-          startY - 60,
-          startX + 80,
-          startY - 40
-        );
-        cx.bezierCurveTo(
-          startX + 30,
-          startY - 75,
-          startX - 20,
-          startY - 60,
-          startX,
-          startY
-        );
-        cx.closePath();
-        cx.fill();
-        cx.restore();
-      }
-    });
-  }
+      cx.closePath();
+      cx.fill();
+      cx.restore();
+    }
+  });
 };
 
 const createLadder = () => {
