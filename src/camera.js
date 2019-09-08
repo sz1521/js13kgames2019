@@ -22,6 +22,8 @@
  * SOFTWARE.
  */
 
+import { random } from "./utils.js";
+
 export const createCamera = (level, canvas) => {
   return {
     x: 0,
@@ -69,8 +71,8 @@ export const createCamera = (level, canvas) => {
         return;
       }
 
-      this.x += Math.random() * shakePower * 2 - shakePower;
-      this.y += Math.random() * shakePower * 2 - shakePower;
+      this.x += random(shakePower * 2) - shakePower;
+      this.y += random(shakePower * 2) - shakePower;
 
       this.shakePower -= this.shakeDecay * (1.0 / 60);
     },
