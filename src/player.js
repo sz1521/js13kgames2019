@@ -125,11 +125,13 @@ export const createPlayer = level => {
       return { collision, collidesHigh };
     },
 
-    hit() {
-      this.xVel = 20;
+    hit(velocity) {
+      if (Math.abs(this.xVel) < 100) {
+        this.xVel += velocity;
+      }
     },
 
-    update(ladders, platforms, hittingEnemy, camera) {
+    update(ladders, platforms, camera) {
       if (this.state === STATE_DEAD) {
         return;
       }
@@ -139,16 +141,11 @@ export const createPlayer = level => {
 
       let ladderCollision = this.findLadderCollision(ladders);
 
-      if (hittingEnemy) {
-        this.state = STATE_FALLING;
-        if (!this.fallingToGround) {
-          this.fallingToGround = true;
-          this.turnHorizontally();
-        }
-      } else if (!ladderCollision.collision && this.state === STATE_CLIMBING) {
+      if (!ladderCollision.collision && this.state === STATE_CLIMBING) {
         this.state = STATE_FALLING;
       } else if (this.yVel > 60) {
         this.fallingToGround = true;
+        this.turnHorizontally();
       } else if (!this.fallingToGround) {
         movement = this.handleControls(ladderCollision, platform);
       }
@@ -157,7 +154,7 @@ export const createPlayer = level => {
 
       if (this.xVel !== 0) {
         dx += this.xVel;
-        if (this.xVel > 4) {
+        if (Math.abs(this.xVel) > 4) {
           this.xVel *= 0.97; // friction
         } else {
           this.xVel = 0;
@@ -169,7 +166,13 @@ export const createPlayer = level => {
         dy += this.yVel;
       }
 
-      if (dx !== 0) {
+      if (this.x + dx > level.width - this.width) {
+        this.x = level.width - this.width;
+        this.xVel = 0;
+      } else if (this.x + dx < level.left) {
+        this.x = level.left;
+        this.xVel = 0;
+      } else if (dx !== 0) {
         this.x += dx;
       }
 
@@ -190,7 +193,7 @@ export const createPlayer = level => {
         this.y += dy;
       } else if (this.state === STATE_CLIMBING) {
         this.y += dy;
-      } else if (dy > 0 && platform && !hittingEnemy) {
+      } else if (dy > 0 && platform) {
         // Margin so that the player does not constantly toggle
         // between standing and free falling.
         const margin = 5;

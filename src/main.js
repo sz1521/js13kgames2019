@@ -40,6 +40,7 @@ const TIME_BACK_MAX_SECONDS = 3;
 
 const ANTI_GRAVITY_WARN_TIME = 0.5;
 const ANTI_GRAVITY_DRAIN_TIME = 1.5;
+const ANTI_GRAVITY_RESTORE_TIME = 6000;
 
 let clouds0 = [];
 let clouds1 = [];
@@ -97,13 +98,21 @@ const updateAntiGravityState = back => {
   } else {
     backTime = Math.max(0, backTime - SECONDS_PER_FRAME);
 
-    if (agOffStartTime && now - agOffStartTime > 2000) {
+    if (agOffStartTime && now - agOffStartTime > ANTI_GRAVITY_RESTORE_TIME) {
       player.ag = 2;
       agOffStartTime = null;
     } else if (player.ag === 1 && backTime <= ANTI_GRAVITY_WARN_TIME) {
       player.ag = 2;
     }
   }
+};
+
+const hitPlayer = enemy => {
+  const enemyCenter = enemy.x + enemy.width / 2;
+  const playerCenter = player.x + player.width / 2;
+  const direction = Math.sign(playerCenter - enemyCenter);
+  player.hit(direction * 20);
+  playTune("end");
 };
 
 let loop = GameLoop({
@@ -117,21 +126,19 @@ let loop = GameLoop({
       timeTravelUpdate(clouds1[i], back);
     }
 
-    let hittingEnemy;
     for (let i = 0; i < enemies.length; i++) {
       let enemy = enemies[i];
 
       timeTravelUpdate(enemy, back);
 
       if (enemy.collidesWith(player)) {
-        hittingEnemy = enemy;
-        playTune("end");
+        hitPlayer(enemy);
       }
     }
 
     if (!back) {
       // The player stays put when moving back in time.
-      player.update(ladders, platforms, hittingEnemy, camera);
+      player.update(ladders, platforms, camera);
     }
 
     camera.update();
@@ -507,14 +514,13 @@ bindKeys(["2"], () => {
 bindKeys(["s"], () => {
   camera.shake(10, 1);
 });
+bindKeys(["a"], () => {
+  player.ag = player.ag === 2 ? 0 : 2;
+});
 
 // Actual keys
 bindKeys(["enter"], () => {
   startGame();
-});
-
-bindKeys(["a"], () => {
-  player.ag = player.ag === 2 ? 0 : 2;
 });
 
 context.fillStyle = "red";
