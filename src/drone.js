@@ -24,11 +24,22 @@
 
 import { Sprite } from "kontra";
 
-export const createDrone = () => {
+export const createDrone = player => {
   return Sprite({
     width: 60,
     height: 60,
     color: "black",
+    player: player,
+
+    update() {
+      this.advance();
+
+      const xDiff = player.x + player.width - (this.x + this.width);
+      const yDiff = player.y + player.height - (this.y + this.height);
+
+      this.dx = Math.sign(xDiff);
+      this.dy = Math.sign(yDiff);
+    },
 
     render() {
       this.context.beginPath();

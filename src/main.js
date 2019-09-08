@@ -479,16 +479,16 @@ const initScene = () => {
   createTower(1400, 7);
   createTower(2500, 10);
 
+  player = createPlayer(level);
+  player.x = 900;
+  player.y = level.height - player.height;
+
   for (let i = 0; i < 8; i++) {
-    let drone = createDrone();
+    let drone = createDrone(player);
     drone.x = random(level.width);
     drone.y = random(level.height - 500);
     enemies.push(drone);
   }
-
-  player = createPlayer(level);
-  player.x = 900;
-  player.y = level.height - player.height;
 
   camera.follow(player);
 };
