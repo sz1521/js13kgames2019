@@ -43,6 +43,7 @@ const ANTI_GRAVITY_DRAIN_TIME = 1.5;
 
 let clouds0 = [];
 let clouds1 = [];
+let city = [];
 let ladders = [];
 let platforms = [];
 let backgroundObjects = [];
@@ -138,7 +139,10 @@ let loop = GameLoop({
   },
 
   render() {
-    context.fillStyle = "rgb(100,100,255)";
+    var gradient = context.createLinearGradient(0, 0, 0, 170);
+    gradient.addColorStop(0, "rgb(100,100,155");
+    gradient.addColorStop(1, "rgb(100,100,255)");
+    context.fillStyle = gradient;
     context.fillRect(0, 0, canvas.width, canvas.height);
 
     context.save();
@@ -338,6 +342,23 @@ const createCloudLayer = y => {
   }
 };
 
+const createHouseLayer = () => {
+  for (let i = 0; i < canvas.width / 10; i++) {
+    let house = Sprite({
+      width: 80,
+      height: 150 - Math.random() * 100,
+
+      render: function() {
+        this.context.drawImage(houseImage, this.x, this.y);
+      }
+    });
+    house.x = i * Math.random() * 100;
+    house.y = level.height - house.height;
+    city.push(house);
+    backgroundObjects.push(house);
+  }
+};
+
 const createTower = (x, floorCount) => {
   for (let i = 0; i < floorCount; i++) {
     const floorWidth = 800;
@@ -378,18 +399,7 @@ const initScene = () => {
   createCloudLayer(200);
   createCloudLayer(800);
 
-  let house = Sprite({
-    width: 80,
-    height: 150,
-
-    render: function() {
-      this.context.drawImage(houseImage, this.x, this.y);
-    }
-  });
-  house.x = level.width - 200;
-  house.y = level.height - house.height;
-  backgroundObjects.push(house);
-
+  createHouseLayer();
   createTower(1400, 7);
   createTower(2500, 10);
 
