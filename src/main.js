@@ -145,14 +145,8 @@ let loop = GameLoop({
   },
 
   render() {
-    var gradient2 = context.createLinearGradient(0, 0, 0, level.height / 5);
-    gradient2.addColorStop(0, "rgb(50,50,105");
-    gradient2.addColorStop(1, "rgb(100,100,255)");
-    context.fillStyle = gradient2;
-    context.fillRect(0, 0, level.width, level.height);
-
     var gradient = context.createLinearGradient(0, 0, 0, 170);
-    gradient.addColorStop(0, "rgba(0,0,0,0.5");
+    gradient.addColorStop(0, "rgba(0,0,0,0.5)");
     gradient.addColorStop(1, "rgba(0,0,0,0)");
     context.fillStyle = gradient;
     context.fillRect(0, 0, canvas.width, canvas.height);
@@ -161,6 +155,14 @@ let loop = GameLoop({
     context.translate(canvas.width / 2, canvas.height / 2);
     context.scale(camera.zoom, camera.zoom);
     context.translate(-camera.x, -camera.y);
+
+    var gradient2 = context.createLinearGradient(0, 0, 0, level.height);
+    gradient2.addColorStop(0, "rgb(0,0,25");
+    gradient2.addColorStop(0.2, "rgb(255,0,0)");
+    gradient2.addColorStop(0.4, "rgb(255,200,0)");
+    gradient2.addColorStop(1, "rgb(100,100,255)");
+    context.fillStyle = gradient2;
+    context.fillRect(0, 0, level.width, level.height);
 
     renderWorldObjects();
 
@@ -249,7 +251,7 @@ const createCloud = (y, z, opacity) => {
       let cx = this.context;
       cx.save();
       cx.fillStyle = this.color;
-      (cx.globalAlpha = this.opacity), cx.beginPath();
+      cx.globalAlpha = this.opacity;
       cx.beginPath();
       let startX = this.x;
       let startY = this.y;
@@ -314,7 +316,7 @@ const createCloud = (y, z, opacity) => {
 
 const createLadder = () => {
   return Sprite({
-    color: "gray",
+    color: "darkgray",
     width: 30,
     height: level.height,
 
