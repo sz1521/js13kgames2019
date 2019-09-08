@@ -25,7 +25,8 @@ import { init, Sprite, GameLoop, bindKeys, keyPressed, initKeys } from "kontra";
 import { createCamera } from "./camera.js";
 import { createPlayer } from "./player.js";
 import { createEnemy } from "./enemy.js";
-import { imageFromSvg } from "./utils.js";
+import { createDrone } from "./drone.js";
+import { imageFromSvg, random } from "./utils.js";
 import houseSvg from "./images/house.svg";
 import { initialize, playTune } from "./music.js";
 const houseImage = imageFromSvg(houseSvg);
@@ -40,6 +41,7 @@ const TIME_BACK_MAX_SECONDS = 3;
 
 const ANTI_GRAVITY_WARN_TIME = 0.5;
 const ANTI_GRAVITY_DRAIN_TIME = 1.5;
+const ANTI_GRAVITY_RESTORE_TIME = 6000;
 
 let clouds0 = [];
 let clouds1 = [];
@@ -97,13 +99,20 @@ const updateAntiGravityState = back => {
   } else {
     backTime = Math.max(0, backTime - SECONDS_PER_FRAME);
 
-    if (agOffStartTime && now - agOffStartTime > 2000) {
+    if (agOffStartTime && now - agOffStartTime > ANTI_GRAVITY_RESTORE_TIME) {
       player.ag = 2;
       agOffStartTime = null;
     } else if (player.ag === 1 && backTime <= ANTI_GRAVITY_WARN_TIME) {
       player.ag = 2;
     }
   }
+};
+
+const hitPlayer = enemy => {
+  const enemyCenter = enemy.x + enemy.width / 2;
+  const playerCenter = player.x + player.width / 2;
+  const direction = Math.sign(playerCenter - enemyCenter);
+  player.hit(direction * 20);
 };
 
 let loop = GameLoop({
@@ -117,21 +126,19 @@ let loop = GameLoop({
       timeTravelUpdate(clouds1[i], back);
     }
 
-    let hittingEnemy;
     for (let i = 0; i < enemies.length; i++) {
       let enemy = enemies[i];
 
       timeTravelUpdate(enemy, back);
 
       if (enemy.collidesWith(player)) {
-        hittingEnemy = enemy;
-        playTune("end");
+        hitPlayer(enemy);
       }
     }
 
     if (!back) {
       // The player stays put when moving back in time.
-      player.update(ladders, platforms, hittingEnemy, camera);
+      player.update(ladders, platforms, camera);
     }
 
     camera.update();
@@ -213,12 +220,12 @@ const renderUi = () => {
 const createCloud = (y, z) => {
   if (z === 0) {
     return Sprite({
-      x: Math.random() * level.width * (5 / 4) - level.width / 4,
-      y: y + (Math.random() * 200 - 102120),
+      x: random(level.width * (5 / 4)) - level.width / 4,
+      y: y + (random(200) - 102120),
       color: "white",
       opacity: 0.95,
-      dx: 0.07 + Math.random() * 0.1,
-      radius: 20 + Math.random() * Math.random() * 70,
+      dx: 0.07 + random(0.1),
+      radius: 20 + random() * random() * 70,
 
       update: function() {
         this.advance();
@@ -293,12 +300,12 @@ const createCloud = (y, z) => {
     });
   } else {
     return Sprite({
-      x: Math.random() * level.width * (5 / 4) - level.width / 4,
-      y: y + (Math.random() * 200 - 100),
+      x: random(level.width * (5 / 4)) - level.width / 4,
+      y: y + (random(200) - 100),
       color: "white",
       opacity: 0.7,
-      dx: 0.05 + Math.random() * 0.1,
-      radius: 20 + Math.random() * Math.random() * 70,
+      dx: 0.05 + random(0.1),
+      radius: 20 + random() * random() * 70,
 
       update: function() {
         this.advance();
@@ -417,9 +424,10 @@ const createCloudLayer = y => {
 };
 
 const createTower = (x, floorCount) => {
+  const floorWidth = 800;
+  const floorHeight = 300;
+
   for (let i = 0; i < floorCount; i++) {
-    const floorWidth = 800;
-    const floorHeight = 300;
     const floorTop = level.height - (i + 1) * floorHeight;
     const floorLeft = x - floorWidth / 2;
 
@@ -430,20 +438,30 @@ const createTower = (x, floorCount) => {
     platforms.push(platform);
 
     let enemy = createEnemy(platform);
-    enemy.x = floorLeft + Math.random() * (floorWidth - enemy.width);
+    enemy.x = floorLeft + random(floorWidth - enemy.width);
     enemy.y = floorTop - enemy.height;
     enemies.push(enemy);
 
-    const ladderCount = Math.floor(Math.random() * 3 + 1);
+    const ladderCount = Math.floor(random(3) + 1);
 
     for (let j = 0; j < ladderCount; j++) {
       let ladder = createLadder();
       ladder.height = floorHeight;
-      ladder.x = floorLeft + Math.random() * (floorWidth - ladder.width);
+      ladder.x = floorLeft + random(floorWidth - ladder.width);
       ladder.y = floorTop;
       ladders.push(ladder);
     }
   }
+
+  return {
+    x,
+    width: floorWidth,
+    height: floorCount * floorHeight,
+    top: level.height - floorCount * floorHeight,
+    bottom: level.height,
+    left: x - floorWidth / 2,
+    right: x + floorWidth / 2
+  };
 };
 
 const initScene = () => {
@@ -468,12 +486,31 @@ const initScene = () => {
   house.y = level.height - house.height;
   backgroundObjects.push(house);
 
-  createTower(1400, 7);
-  createTower(2500, 10);
+  const tower1 = createTower(1400, 7);
+  const tower2 = createTower(2500, 10);
 
   player = createPlayer(level);
   player.x = 900;
   player.y = level.height - player.height;
+
+  const wayPoints = [
+    { x: tower1.left - 200, y: tower1.top + 300 },
+    { x: tower1.left - 200, y: tower1.bottom - tower1.height / 2 },
+    { x: tower1.x, y: tower1.top - 300 },
+    { x: tower1.right + 200, y: tower1.bottom - tower1.height / 2 },
+
+    { x: tower2.left - 200, y: tower2.top + 300 },
+    { x: tower2.left - 200, y: tower2.bottom - tower2.height / 2 },
+    { x: tower2.x, y: tower2.top - 300 },
+    { x: tower2.right + 200, y: tower2.bottom - tower2.height / 2 }
+  ];
+
+  for (let i = 0; i < 10; i++) {
+    let drone = createDrone(player, wayPoints);
+    drone.x = random(level.width);
+    drone.y = random(level.height - 500);
+    enemies.push(drone);
+  }
 
   camera.follow(player);
 };
@@ -507,14 +544,13 @@ bindKeys(["2"], () => {
 bindKeys(["s"], () => {
   camera.shake(10, 1);
 });
+bindKeys(["a"], () => {
+  player.ag = player.ag === 2 ? 0 : 2;
+});
 
 // Actual keys
 bindKeys(["enter"], () => {
   startGame();
-});
-
-bindKeys(["a"], () => {
-  player.ag = player.ag === 2 ? 0 : 2;
 });
 
 context.fillStyle = "red";
