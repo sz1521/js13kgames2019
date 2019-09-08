@@ -113,7 +113,6 @@ const hitPlayer = enemy => {
   const playerCenter = player.x + player.width / 2;
   const direction = Math.sign(playerCenter - enemyCenter);
   player.hit(direction * 20);
-  playTune("end");
 };
 
 let loop = GameLoop({

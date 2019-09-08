@@ -24,6 +24,7 @@
 
 import { Sprite, keyPressed } from "kontra";
 import { imageFromSvg } from "./utils.js";
+import { playTune } from "./music.js";
 import playerSvg from "./images/player.svg";
 import playerLeftfootSvg from "./images/player-leftfoot.svg";
 import playerverticalSvg from "./images/player-vertical.svg";
@@ -261,6 +262,7 @@ export const createPlayer = level => {
         if (this.fallingToGround) {
           this._screenShake(camera);
           this.state = STATE_DEAD;
+          playTune("end");
         } else {
           this.state = STATE_ON_PLATFORM;
         }
