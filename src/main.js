@@ -25,7 +25,8 @@ import { init, Sprite, GameLoop, bindKeys, keyPressed, initKeys } from "kontra";
 import { createCamera } from "./camera.js";
 import { createPlayer } from "./player.js";
 import { createEnemy } from "./enemy.js";
-import { imageFromSvg } from "./utils.js";
+import { createDrone } from "./drone.js";
+import { imageFromSvg, random } from "./utils.js";
 import houseSvg from "./images/house.svg";
 import { initialize, playTune } from "./music.js";
 const houseImage = imageFromSvg(houseSvg);
@@ -220,12 +221,12 @@ const renderUi = () => {
 const createCloud = (y, z) => {
   if (z === 0) {
     return Sprite({
-      x: Math.random() * level.width * (5 / 4) - level.width / 4,
-      y: y + (Math.random() * 200 - 102120),
+      x: random(level.width * (5 / 4)) - level.width / 4,
+      y: y + (random(200) - 102120),
       color: "white",
       opacity: 0.95,
-      dx: 0.07 + Math.random() * 0.1,
-      radius: 20 + Math.random() * Math.random() * 70,
+      dx: 0.07 + random(0.1),
+      radius: 20 + random() * random() * 70,
 
       update: function() {
         this.advance();
@@ -300,12 +301,12 @@ const createCloud = (y, z) => {
     });
   } else {
     return Sprite({
-      x: Math.random() * level.width * (5 / 4) - level.width / 4,
-      y: y + (Math.random() * 200 - 100),
+      x: random(level.width * (5 / 4)) - level.width / 4,
+      y: y + (random(200) - 100),
       color: "white",
       opacity: 0.7,
-      dx: 0.05 + Math.random() * 0.1,
-      radius: 20 + Math.random() * Math.random() * 70,
+      dx: 0.05 + random(0.1),
+      radius: 20 + random() * random() * 70,
 
       update: function() {
         this.advance();
@@ -437,16 +438,16 @@ const createTower = (x, floorCount) => {
     platforms.push(platform);
 
     let enemy = createEnemy(platform);
-    enemy.x = floorLeft + Math.random() * (floorWidth - enemy.width);
+    enemy.x = floorLeft + random(floorWidth - enemy.width);
     enemy.y = floorTop - enemy.height;
     enemies.push(enemy);
 
-    const ladderCount = Math.floor(Math.random() * 3 + 1);
+    const ladderCount = Math.floor(random(3) + 1);
 
     for (let j = 0; j < ladderCount; j++) {
       let ladder = createLadder();
       ladder.height = floorHeight;
-      ladder.x = floorLeft + Math.random() * (floorWidth - ladder.width);
+      ladder.x = floorLeft + random(floorWidth - ladder.width);
       ladder.y = floorTop;
       ladders.push(ladder);
     }
@@ -477,6 +478,13 @@ const initScene = () => {
 
   createTower(1400, 7);
   createTower(2500, 10);
+
+  for (let i = 0; i < 8; i++) {
+    let drone = createDrone();
+    drone.x = random(level.width);
+    drone.y = random(level.height - 500);
+    enemies.push(drone);
+  }
 
   player = createPlayer(level);
   player.x = 900;
