@@ -225,6 +225,10 @@ const renderWorldObjects = () => {
 };
 
 const renderUi = () => {
+  if (player.isDead()) {
+    renderInfoText("Press enter");
+  }
+
   if (player.ag > 0) {
     context.fillStyle = player.ag === 2 ? "white" : "red";
     context.font = "22px Sans-serif";
@@ -460,6 +464,13 @@ const initScene = () => {
   camera.follow(player);
 };
 
+const renderInfoText = text => {
+  context.fillStyle = "white";
+  context.font = "22px Sans-serif";
+  let textWidth = text.length * 14;
+  context.fillText(text, canvas.width / 2 - textWidth / 2, 120);
+};
+
 const listenKeys = () => {
   // Keys for debugging
   bindKeys(["1"], () => {
@@ -510,10 +521,4 @@ bindKeys(["enter"], () => {
   startGame();
 });
 
-context.fillStyle = "red";
-context.font = "22px Sans-serif";
-context.fillText(
-  "Press enter to start",
-  canvas.width / 2 - 100,
-  canvas.height / 2
-);
+renderInfoText("Press enter to start");
