@@ -425,9 +425,10 @@ const createCloudLayer = y => {
 };
 
 const createTower = (x, floorCount) => {
+  const floorWidth = 800;
+  const floorHeight = 300;
+
   for (let i = 0; i < floorCount; i++) {
-    const floorWidth = 800;
-    const floorHeight = 300;
     const floorTop = level.height - (i + 1) * floorHeight;
     const floorLeft = x - floorWidth / 2;
 
@@ -452,6 +453,16 @@ const createTower = (x, floorCount) => {
       ladders.push(ladder);
     }
   }
+
+  return {
+    x,
+    width: floorWidth,
+    height: floorCount * floorHeight,
+    top: level.height - floorCount * floorHeight,
+    bottom: level.height,
+    left: x - floorWidth / 2,
+    right: x + floorWidth / 2
+  };
 };
 
 const initScene = () => {
@@ -476,15 +487,27 @@ const initScene = () => {
   house.y = level.height - house.height;
   backgroundObjects.push(house);
 
-  createTower(1400, 7);
-  createTower(2500, 10);
+  const tower1 = createTower(1400, 7);
+  const tower2 = createTower(2500, 10);
 
   player = createPlayer(level);
   player.x = 900;
   player.y = level.height - player.height;
 
-  for (let i = 0; i < 8; i++) {
-    let drone = createDrone(player);
+  const wayPoints = [
+    { x: tower1.left - 200, y: tower1.top + 300 },
+    { x: tower1.left - 200, y: tower1.bottom - tower1.height / 2 },
+    { x: tower1.x, y: tower1.top - 300 },
+    { x: tower1.right + 200, y: tower1.bottom - tower1.height / 2 },
+
+    { x: tower2.left - 200, y: tower2.top + 300 },
+    { x: tower2.left - 200, y: tower2.bottom - tower2.height / 2 },
+    { x: tower2.x, y: tower2.top - 300 },
+    { x: tower2.right + 200, y: tower2.bottom - tower2.height / 2 }
+  ];
+
+  for (let i = 0; i < 10; i++) {
+    let drone = createDrone(player, wayPoints);
     drone.x = random(level.width);
     drone.y = random(level.height - 500);
     enemies.push(drone);

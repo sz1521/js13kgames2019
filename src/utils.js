@@ -12,3 +12,12 @@ export const imageFromSvg = svgString => {
 export const random = (max = 1) => {
   return Math.random() * max;
 };
+
+/*
+ * Returns distance between two points.
+ */
+export const getDistance = (a, b) => {
+  const xDiff = a.x - b.x;
+  const yDiff = a.y - b.y;
+  return Math.sqrt(xDiff * xDiff + yDiff * yDiff);
+};

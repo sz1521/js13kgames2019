@@ -23,22 +23,46 @@
  */
 
 import { Sprite } from "kontra";
+import { getDistance, random } from "./utils.js";
 
-export const createDrone = player => {
+const SPEED = 1;
+const PLAYER_FOLLOW_DISTANCE = 600;
+
+export const createDrone = (player, wayPoints) => {
   return Sprite({
     width: 60,
     height: 60,
-    color: "black",
-    player: player,
+    wayPoints: wayPoints,
+    target: null,
 
     update() {
       this.advance();
+      let xDiff = 0,
+        yDiff = 0;
 
-      const xDiff = player.x + player.width - (this.x + this.width);
-      const yDiff = player.y + player.height - (this.y + this.height);
+      if (!this.target) {
+        this._pickTarget();
+      }
 
-      this.dx = Math.sign(xDiff);
-      this.dy = Math.sign(yDiff);
+      if (getDistance(this, player) < PLAYER_FOLLOW_DISTANCE) {
+        xDiff = player.x - this.x;
+        yDiff = player.y - this.y;
+      } else if (this.target) {
+        if (getDistance(this, this.target) > 200) {
+          xDiff = this.target.x - this.x;
+          yDiff = this.target.y - this.y;
+        } else {
+          // randomly pick next target
+          this._pickTarget();
+        }
+      }
+
+      this.dx = Math.sign(xDiff) * SPEED;
+      this.dy = Math.sign(yDiff) * SPEED;
+    },
+
+    _pickTarget() {
+      this.target = wayPoints[Math.floor(random(100)) % wayPoints.length];
     },
 
     render() {
