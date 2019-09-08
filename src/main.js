@@ -45,7 +45,6 @@ const ANTI_GRAVITY_RESTORE_TIME = 6000;
 
 let clouds0 = [];
 let clouds1 = [];
-let city = [];
 let ladders = [];
 let platforms = [];
 let backgroundObjects = [];
@@ -146,9 +145,15 @@ let loop = GameLoop({
   },
 
   render() {
+    var gradient2 = context.createLinearGradient(0, 0, 0, level.height / 5);
+    gradient2.addColorStop(0, "rgb(50,50,105");
+    gradient2.addColorStop(1, "rgb(100,100,255)");
+    context.fillStyle = gradient2;
+    context.fillRect(0, 0, level.width, level.height);
+
     var gradient = context.createLinearGradient(0, 0, 0, 170);
-    gradient.addColorStop(0, "rgb(100,100,155");
-    gradient.addColorStop(1, "rgb(100,100,255)");
+    gradient.addColorStop(0, "rgba(0,0,0,0.5");
+    gradient.addColorStop(1, "rgba(0,0,0,0)");
     context.fillStyle = gradient;
     context.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -221,7 +226,7 @@ const renderUi = () => {
   }
 };
 
-const createCloud = (y, z) => {
+const createCloud = (y, z, opacity) => {
   return Sprite({
     x: Math.random() * level.width * (5 / 4) - level.width / 4,
     y:
@@ -229,7 +234,7 @@ const createCloud = (y, z) => {
         ? y + (Math.random() * 200 - 102120)
         : y + (Math.random() * 200 - 100),
     color: "white",
-    opacity: z === 0 ? 0.95 : 0.7,
+    opacity: z === 0 ? 0.95 * opacity : 0.7 * opacity,
     dx: z === 0 ? 0.07 + Math.random() * 0.1 : 0.05 + Math.random() * 0.1,
     radius: 20 + Math.random() * Math.random() * 70,
 
@@ -337,14 +342,14 @@ const createPlatform = () => {
   });
 };
 
-const createCloudLayer = y => {
+const createCloudLayer = (y, opacity) => {
   for (let i = 0; i < 20; i++) {
-    let cloud0 = createCloud(y, 0);
+    let cloud0 = createCloud(y, 0, opacity);
     clouds0.push(cloud0);
   }
 
   for (let i = 0; i < 20; i++) {
-    let cloud1 = createCloud(y, 1);
+    let cloud1 = createCloud(y, 1, opacity);
     clouds1.push(cloud1);
   }
 };
@@ -361,7 +366,6 @@ const createHouseLayer = () => {
     });
     house.x = i * Math.random() * 100;
     house.y = level.height - house.height;
-    city.push(house);
     backgroundObjects.push(house);
   }
 };
@@ -414,8 +418,8 @@ const initScene = () => {
   clouds1 = [];
   backgroundObjects = [];
 
-  createCloudLayer(200);
-  createCloudLayer(800);
+  createCloudLayer(2000, 1);
+  createCloudLayer(800, 0.5);
 
   createHouseLayer();
 
