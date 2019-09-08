@@ -35,6 +35,9 @@ let { canvas, context } = init();
 
 initKeys();
 
+const GAME_STATE_START_SCREEN = 0;
+const GAME_STATE_RUNNING = 1;
+
 const FRAMES_PER_SECOND = 60;
 const SECONDS_PER_FRAME = 1 / FRAMES_PER_SECOND;
 const TIME_BACK_MAX_SECONDS = 3;
@@ -42,6 +45,8 @@ const TIME_BACK_MAX_SECONDS = 3;
 const ANTI_GRAVITY_WARN_TIME = 0.5;
 const ANTI_GRAVITY_DRAIN_TIME = 1.5;
 const ANTI_GRAVITY_RESTORE_TIME = 6000;
+
+let state = GAME_STATE_START_SCREEN;
 
 let clouds0 = [];
 let clouds1 = [];
@@ -115,62 +120,64 @@ const hitPlayer = enemy => {
   player.hit(direction * 20);
 };
 
-let loop = GameLoop({
-  update() {
-    const back = keyPressed("space");
+const createGameLoop = () => {
+  return GameLoop({
+    update() {
+      const back = keyPressed("space");
 
-    updateAntiGravityState(back);
+      updateAntiGravityState(back);
 
-    for (let i = 0; i < clouds0.length; i++) {
-      timeTravelUpdate(clouds0[i], back);
-      timeTravelUpdate(clouds1[i], back);
-    }
-
-    for (let i = 0; i < enemies.length; i++) {
-      let enemy = enemies[i];
-
-      timeTravelUpdate(enemy, back);
-
-      if (enemy.collidesWith(player)) {
-        hitPlayer(enemy);
+      for (let i = 0; i < clouds0.length; i++) {
+        timeTravelUpdate(clouds0[i], back);
+        timeTravelUpdate(clouds1[i], back);
       }
+
+      for (let i = 0; i < enemies.length; i++) {
+        let enemy = enemies[i];
+
+        timeTravelUpdate(enemy, back);
+
+        if (enemy.collidesWith(player)) {
+          hitPlayer(enemy);
+        }
+      }
+
+      if (!back) {
+        // The player stays put when moving back in time.
+        player.update(ladders, platforms, camera);
+      }
+
+      camera.update();
+    },
+
+    render() {
+      var gradient = context.createLinearGradient(0, 0, 0, 170);
+      gradient.addColorStop(0, "rgba(0,0,0,0.5)");
+      gradient.addColorStop(1, "rgba(0,0,0,0)");
+      context.fillStyle = gradient;
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
+      context.save();
+      context.translate(canvas.width / 2, canvas.height / 2);
+      context.scale(camera.zoom, camera.zoom);
+      context.translate(-camera.x, -camera.y);
+
+      var gradient2 = context.createLinearGradient(0, 0, 0, level.height);
+      gradient2.addColorStop(0, "rgb(0,0,25");
+      gradient2.addColorStop(0.2, "rgb(255,0,0)");
+      gradient2.addColorStop(0.4, "rgb(255,200,0)");
+      gradient2.addColorStop(1, "rgb(100,100,255)");
+      context.fillStyle = gradient2;
+      context.fillRect(0, 0, level.width, level.height);
+
+      renderWorldObjects();
+
+      context.restore();
+
+      renderUi();
     }
-
-    if (!back) {
-      // The player stays put when moving back in time.
-      player.update(ladders, platforms, camera);
-    }
-
-    camera.update();
-  },
-
-  render() {
-    var gradient = context.createLinearGradient(0, 0, 0, 170);
-    gradient.addColorStop(0, "rgba(0,0,0,0.5)");
-    gradient.addColorStop(1, "rgba(0,0,0,0)");
-    context.fillStyle = gradient;
-    context.fillRect(0, 0, canvas.width, canvas.height);
-
-    context.save();
-    context.translate(canvas.width / 2, canvas.height / 2);
-    context.scale(camera.zoom, camera.zoom);
-    context.translate(-camera.x, -camera.y);
-
-    var gradient2 = context.createLinearGradient(0, 0, 0, level.height);
-    gradient2.addColorStop(0, "rgb(0,0,25");
-    gradient2.addColorStop(0.2, "rgb(255,0,0)");
-    gradient2.addColorStop(0.4, "rgb(255,200,0)");
-    gradient2.addColorStop(1, "rgb(100,100,255)");
-    context.fillStyle = gradient2;
-    context.fillRect(0, 0, level.width, level.height);
-
-    renderWorldObjects();
-
-    context.restore();
-
-    renderUi();
-  }
-});
+  });
+};
 
 const renderWorldObjects = () => {
   for (let i = 0; i < clouds0.length; i++) {
@@ -220,6 +227,10 @@ const renderWorldObjects = () => {
 };
 
 const renderUi = () => {
+  if (player.isDead()) {
+    renderInfoText("Press enter");
+  }
+
   if (player.ag > 0) {
     context.fillStyle = player.ag === 2 ? "white" : "red";
     context.font = "22px Sans-serif";
@@ -419,6 +430,7 @@ const initScene = () => {
   clouds0 = [];
   clouds1 = [];
   backgroundObjects = [];
+  enemies = [];
 
   createCloudLayer(2000, 1);
   createCloudLayer(800, 0.5);
@@ -454,10 +466,49 @@ const initScene = () => {
   camera.follow(player);
 };
 
+const renderInfoText = text => {
+  context.fillStyle = "white";
+  context.font = "22px Sans-serif";
+  let textWidth = text.length * 14;
+  context.fillText(
+    text,
+    canvas.width / 2 - textWidth / 2,
+    canvas.height * 0.25
+  );
+};
+
+const listenKeys = () => {
+  // Keys for debugging
+  bindKeys(["1"], () => {
+    camera.follow(player);
+  });
+  bindKeys(["2"], () => {
+    camera.zoomToLevel();
+  });
+  bindKeys(["s"], () => {
+    camera.shake(10, 1);
+  });
+  bindKeys(["a"], () => {
+    player.ag = player.ag === 2 ? 0 : 2;
+  });
+};
+
+let gameLoop = createGameLoop();
+
 const startGame = () => {
-  if (loop.isStopped) {
+  if (state === GAME_STATE_START_SCREEN || player.isDead()) {
+    gameLoop.stop();
+
+    backTime = 0;
+    agOffStartTime = null;
+    initScene();
+    listenKeys();
     playTune("main");
-    loop.start();
+
+    state = GAME_STATE_RUNNING;
+
+    gameLoop = createGameLoop();
+    gameLoop.start();
   }
 };
 
@@ -469,33 +520,13 @@ const resize = () => {
 window.addEventListener("resize", resize, false);
 resize();
 
-initialize();
+renderInfoText("Loading...");
 
-initScene();
+initialize().then(() => {
+  bindKeys(["enter"], () => {
+    startGame();
+  });
 
-// Keys for debugging
-bindKeys(["1"], () => {
-  camera.follow(player);
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  renderInfoText("Press enter to start");
 });
-bindKeys(["2"], () => {
-  camera.zoomToLevel();
-});
-bindKeys(["s"], () => {
-  camera.shake(10, 1);
-});
-bindKeys(["a"], () => {
-  player.ag = player.ag === 2 ? 0 : 2;
-});
-
-// Actual keys
-bindKeys(["enter"], () => {
-  startGame();
-});
-
-context.fillStyle = "red";
-context.font = "22px Sans-serif";
-context.fillText(
-  "Press enter to start",
-  canvas.width / 2 - 100,
-  canvas.height / 2
-);
