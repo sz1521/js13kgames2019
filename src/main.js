@@ -468,7 +468,11 @@ const renderInfoText = text => {
   context.fillStyle = "white";
   context.font = "22px Sans-serif";
   let textWidth = text.length * 14;
-  context.fillText(text, canvas.width / 2 - textWidth / 2, 120);
+  context.fillText(
+    text,
+    canvas.width / 2 - textWidth / 2,
+    canvas.height * 0.25
+  );
 };
 
 const listenKeys = () => {
@@ -514,11 +518,13 @@ const resize = () => {
 window.addEventListener("resize", resize, false);
 resize();
 
-initialize();
+renderInfoText("Loading...");
 
-// Actual keys
-bindKeys(["enter"], () => {
-  startGame();
+initialize().then(() => {
+  bindKeys(["enter"], () => {
+    startGame();
+  });
+
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  renderInfoText("Press enter to start");
 });
-
-renderInfoText("Press enter to start");

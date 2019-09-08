@@ -30,31 +30,36 @@ const eatTune = document.createElement("audio");
 const endTune = document.createElement("audio");
 
 export const initMusicPlayer = (audioTrack, tune, isLooped) => {
-  var songplayer = new CPlayer();
-  // Initialize music generation (player).
-  songplayer.init(tune);
-  // Generate music...
-  var done = false;
-  setInterval(function() {
-    if (done) {
-      return;
-    }
-    done = songplayer.generate() >= 1;
-    if (done) {
-      // Put the generated song in an Audio element.
-      var wave = songplayer.createWave();
-      audioTrack.src = URL.createObjectURL(
-        new Blob([wave], { type: "audio/wav" })
-      );
-      audioTrack.loop = isLooped;
-    }
-  }, 0);
+  return new Promise(resolve => {
+    var songplayer = new CPlayer();
+    // Initialize music generation (player).
+    songplayer.init(tune);
+    // Generate music...
+    var done = false;
+    setInterval(function() {
+      if (done) {
+        return;
+      }
+      done = songplayer.generate() >= 1;
+      if (done) {
+        // Put the generated song in an Audio element.
+        var wave = songplayer.createWave();
+        audioTrack.src = URL.createObjectURL(
+          new Blob([wave], { type: "audio/wav" })
+        );
+        audioTrack.loop = isLooped;
+        resolve();
+      }
+    }, 0);
+  });
 };
 
 export const initialize = () => {
-  initMusicPlayer(mainTune, song, true);
-  initMusicPlayer(eatTune, eatEffect, false);
-  initMusicPlayer(endTune, endSong, false);
+  return Promise.all([
+    initMusicPlayer(mainTune, song, true),
+    initMusicPlayer(eatTune, eatEffect, false),
+    initMusicPlayer(endTune, endSong, false)
+  ]);
 };
 
 export const playTune = tune => {
