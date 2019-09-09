@@ -45,6 +45,8 @@ const STATE_FALLING = 1;
 const STATE_CLIMBING = 2;
 const STATE_DEAD = 3;
 
+export const MAX_ENERGY = 10000;
+
 const playerImage = imageFromSvg(playerSvg);
 const playerLeftfootImage = imageFromSvg(playerLeftfootSvg);
 const playerverticalImage = imageFromSvg(playerverticalSvg);
@@ -64,6 +66,7 @@ export const createPlayer = level => {
     image: playerImage,
     walkingSpeed: 5,
     ag: 2, // Anti-gravity status (0 = off, 1 = warn, 2 = on)
+    energy: MAX_ENERGY,
 
     isOnGround() {
       const margin = 5;

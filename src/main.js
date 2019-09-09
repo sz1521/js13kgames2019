@@ -23,7 +23,7 @@
  */
 import { init, Sprite, GameLoop, bindKeys, keyPressed, initKeys } from "kontra";
 import { createCamera } from "./camera.js";
-import { createPlayer } from "./player.js";
+import { createPlayer, MAX_ENERGY } from "./player.js";
 import { createEnemy } from "./enemy.js";
 import { createDrone } from "./drone.js";
 import { imageFromSvg, random } from "./utils.js";
@@ -226,16 +226,35 @@ const renderWorldObjects = () => {
   }
 };
 
+const renderEnergyBar = () => {
+  const x = 50,
+    y = 50,
+    margin = 5,
+    outlineWidth = canvas.width / 2,
+    outlineHeight = 50,
+    fullWidth = outlineWidth - 2 * margin,
+    heigth = outlineHeight - 2 * margin,
+    width = (player.energy / MAX_ENERGY) * fullWidth;
+
+  context.strokeStyle = "red";
+  context.strokeRect(x, y, outlineWidth, outlineHeight);
+
+  context.fillStyle = "red";
+  context.fillRect(x + margin, y + margin, width, heigth);
+};
+
 const renderUi = () => {
   if (player.isDead()) {
     renderInfoText("Press enter");
   }
 
+  renderEnergyBar();
+
   if (player.ag > 0) {
     context.fillStyle = player.ag === 2 ? "white" : "red";
     context.font = "22px Sans-serif";
 
-    context.fillText("ANTI-GRAVITY", 50, 100);
+    context.fillText("ANTI-GRAVITY", 50, 150);
   }
 };
 
