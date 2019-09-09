@@ -352,9 +352,26 @@ const createLadder = () => {
 
 const createPlatform = () => {
   return Sprite({
-    color: "rgb(100, 100, 100)",
+    color: "darkgray",
+    color2: "gray",
     width: 200,
-    height: 30
+    height: 20,
+
+    render: function() {
+      const stepGap = 20;
+      const stepCount = this.height / stepGap;
+      let cx = this.context;
+      cx.save();
+
+      for (let i = 0; i < stepCount; i++) {
+        cx.fillStyle = this.color2;
+        cx.fillRect(this.x + 2, this.y + i * stepGap, this.width - 4, 10);
+        cx.fillStyle = this.color;
+        cx.fillRect(this.x, this.y + i * stepGap + 15, this.width, 10);
+      }
+
+      cx.restore();
+    }
   });
 };
 
