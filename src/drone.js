@@ -23,10 +23,12 @@
  */
 
 import { Sprite } from "kontra";
-import { getDistance, random } from "./utils.js";
+import { getDistance, random, imageFromSvg } from "./utils.js";
+import droneSvg from "./images/drone.svg";
 
 const SPEED = 1;
 const PLAYER_FOLLOW_DISTANCE = 600;
+const droneImage = imageFromSvg(droneSvg);
 
 export const createDrone = (player, wayPoints) => {
   return Sprite({
@@ -34,6 +36,7 @@ export const createDrone = (player, wayPoints) => {
     height: 60,
     wayPoints: wayPoints,
     target: null,
+    image: droneImage,
 
     update() {
       this.advance();
@@ -66,27 +69,10 @@ export const createDrone = (player, wayPoints) => {
     },
 
     render() {
-      this.context.beginPath();
-      this.context.fillStyle = "rgb(60,60,60)";
-      this.context.arc(
-        this.x + this.width / 2,
-        this.y + this.height / 2,
-        this.width / 2,
-        0,
-        Math.PI * 2
-      );
-      this.context.fill();
-
-      this.context.beginPath();
-      this.context.fillStyle = "rgb(0,0,0)";
-      this.context.arc(
-        this.x + this.width / 2,
-        this.y + this.height / 2,
-        this.width * 0.4,
-        0,
-        Math.PI * 2
-      );
-      this.context.fill();
+      this.context.save();
+      this.context.translate(this.x, this.y);
+      this.context.drawImage(this.image, 0, 0);
+      this.context.restore();
     },
 
     collidesWith(object) {
