@@ -43,6 +43,8 @@ const TIME_BACK_MAX_SECONDS = 2;
 const TIME_BACK_MAX_FRAMES = TIME_BACK_MAX_SECONDS * FRAMES_PER_SECOND;
 
 const TIME_BACK_ENERGY_CONSUMPTION = 35;
+const ENERGY_THRESHOLD_LOW = 4000;
+const ENERGY_THRESHOLD_VERY_LOW = 2000;
 
 let state = GAME_STATE_START_SCREEN;
 
@@ -239,7 +241,14 @@ const renderEnergyBar = () => {
   context.strokeStyle = "red";
   context.strokeRect(x, y, outlineWidth, outlineHeight);
 
-  context.fillStyle = "red";
+  let color = "green";
+  if (player.energy < ENERGY_THRESHOLD_VERY_LOW) {
+    color = "red";
+  } else if (player.energy < ENERGY_THRESHOLD_LOW) {
+    color = "orange";
+  }
+
+  context.fillStyle = color;
   context.fillRect(x + margin, y + margin, width, heigth);
 };
 
