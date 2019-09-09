@@ -84,7 +84,7 @@ const timeTravelUpdate = (entity, back) => {
 };
 
 const updateAntiGravityState = back => {
-  if (back) {
+  if (back && player.energy > 0) {
     player.energy -= TIME_BACK_ENERGY_CONSUMPTION;
   }
 };
