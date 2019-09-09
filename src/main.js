@@ -222,6 +222,11 @@ const renderWorldObjects = () => {
 };
 
 const renderEnergyBar = () => {
+  context.fillStyle = "white";
+  context.font = "20px Sans-serif";
+
+  context.fillText("ENERGY", 50, 35);
+
   const x = 50,
     y = 50,
     margin = 5,
