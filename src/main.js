@@ -226,8 +226,8 @@ const renderUi = () => {
 
   renderEnergyBar();
 
-  if (player.ag > 0) {
-    context.fillStyle = player.ag === 2 ? "white" : "red";
+  if (player.ag) {
+    context.fillStyle = "white";
     context.font = "22px Sans-serif";
 
     context.fillText("ANTI-GRAVITY", 50, 150);
@@ -483,8 +483,10 @@ const listenKeys = () => {
   bindKeys(["s"], () => {
     camera.shake(10, 1);
   });
+
+  // Actual keys
   bindKeys(["a"], () => {
-    player.ag = player.ag === 2 ? 0 : 2;
+    player.ag = !player.ag;
   });
 };
 

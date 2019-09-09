@@ -65,7 +65,7 @@ export const createPlayer = level => {
     moveLeftFoot: 0,
     image: playerImage,
     walkingSpeed: 5,
-    ag: 2, // Anti-gravity status (0 = off, 1 = warn, 2 = on)
+    ag: false, // Anti-gravity status
     energy: MAX_ENERGY,
 
     isOnGround() {
@@ -170,7 +170,7 @@ export const createPlayer = level => {
       }
 
       if (this.state === STATE_FALLING) {
-        this.yVel += this.ag > 0 ? SMALL_GRAVITY : GRAVITY;
+        this.yVel += this.ag ? SMALL_GRAVITY : GRAVITY;
         dy += this.yVel;
       }
 
