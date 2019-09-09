@@ -101,46 +101,45 @@ const hitPlayer = enemy => {
   player.hit(direction * 20);
 };
 
-const createGameLoop = () => {
-  let timeTravelOk = true;
+const updateEntities = timeTravelPressed => {
+  for (let i = 0; i < clouds0.length; i++) {
+    timeTravelUpdate(clouds0[i], timeTravelPressed);
+    timeTravelUpdate(clouds1[i], timeTravelPressed);
+  }
 
+  for (let i = 0; i < enemies.length; i++) {
+    let enemy = enemies[i];
+
+    timeTravelUpdate(enemy, timeTravelPressed);
+
+    if (enemy.collidesWith(player)) {
+      hitPlayer(enemy);
+    }
+  }
+
+  if (!timeTravelPressed) {
+    // The player stays put when moving back in time.
+    player.update(ladders, platforms, camera);
+  }
+};
+
+const createGameLoop = () => {
   return GameLoop({
     update() {
       let timeTravelPressed = keyPressed("space");
       let canTimeTravel = false;
 
       if (timeTravelPressed) {
-        canTimeTravel = timeTravelOk && consumeTimeTravelEnergy();
-        if (!canTimeTravel) {
-          timeTravelOk = false;
-        }
+        canTimeTravel = consumeTimeTravelEnergy();
       } else {
         if (player.timeTravelFrames > 0) {
           player.timeTravelFrames -= 1;
         }
-        timeTravelOk = true;
       }
 
-      if (!(timeTravelPressed && !canTimeTravel)) {
-        for (let i = 0; i < clouds0.length; i++) {
-          timeTravelUpdate(clouds0[i], timeTravelPressed);
-          timeTravelUpdate(clouds1[i], timeTravelPressed);
-        }
-
-        for (let i = 0; i < enemies.length; i++) {
-          let enemy = enemies[i];
-
-          timeTravelUpdate(enemy, timeTravelPressed);
-
-          if (enemy.collidesWith(player)) {
-            hitPlayer(enemy);
-          }
-        }
-
-        if (!timeTravelPressed) {
-          // The player stays put when moving back in time.
-          player.update(ladders, platforms, camera);
-        }
+      // Don't update when reaching time travel limit.
+      if (!timeTravelPressed || canTimeTravel) {
+        updateEntities(timeTravelPressed);
       }
 
       camera.update();
