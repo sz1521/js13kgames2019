@@ -23,7 +23,7 @@
  */
 import { init, Sprite, GameLoop, bindKeys, keyPressed, initKeys } from "kontra";
 import { createCamera } from "./camera.js";
-import { createPlayer } from "./player.js";
+import { createPlayer, MAX_ENERGY } from "./player.js";
 import { createEnemy } from "./enemy.js";
 import { createDrone } from "./drone.js";
 import { imageFromSvg, random } from "./utils.js";
@@ -39,12 +39,12 @@ const GAME_STATE_START_SCREEN = 0;
 const GAME_STATE_RUNNING = 1;
 
 const FRAMES_PER_SECOND = 60;
-const SECONDS_PER_FRAME = 1 / FRAMES_PER_SECOND;
-const TIME_BACK_MAX_SECONDS = 3;
+const TIME_BACK_MAX_SECONDS = 2;
+const TIME_BACK_MAX_FRAMES = TIME_BACK_MAX_SECONDS * FRAMES_PER_SECOND;
 
-const ANTI_GRAVITY_WARN_TIME = 0.5;
-const ANTI_GRAVITY_DRAIN_TIME = 1.5;
-const ANTI_GRAVITY_RESTORE_TIME = 6000;
+const TIME_BACK_ENERGY_CONSUMPTION = 35;
+const ENERGY_THRESHOLD_LOW = 4000;
+const ENERGY_THRESHOLD_VERY_LOW = 2000;
 
 let state = GAME_STATE_START_SCREEN;
 
@@ -76,9 +76,8 @@ const timeTravelUpdate = (entity, back) => {
       entity.position = position;
     }
   } else {
-    const maxLength = TIME_BACK_MAX_SECONDS * FRAMES_PER_SECOND;
     entity.positions.push(entity.position);
-    if (entity.positions.length > maxLength) {
+    if (entity.positions.length > TIME_BACK_MAX_FRAMES) {
       entity.positions.shift();
     }
 
@@ -86,30 +85,14 @@ const timeTravelUpdate = (entity, back) => {
   }
 };
 
-let backTime = 0;
-let agOffStartTime = null;
-
-const updateAntiGravityState = back => {
-  let now = performance.now();
-
-  if (back) {
-    backTime += SECONDS_PER_FRAME;
-
-    if (backTime > ANTI_GRAVITY_DRAIN_TIME) {
-      player.ag = 0;
-      agOffStartTime = now;
-    } else if (backTime > ANTI_GRAVITY_WARN_TIME) {
-      player.ag = 1;
-    }
-  } else {
-    backTime = Math.max(0, backTime - SECONDS_PER_FRAME);
-
-    if (agOffStartTime && now - agOffStartTime > ANTI_GRAVITY_RESTORE_TIME) {
-      player.ag = 2;
-      agOffStartTime = null;
-    } else if (player.ag === 1 && backTime <= ANTI_GRAVITY_WARN_TIME) {
-      player.ag = 2;
-    }
+const consumeTimeTravelEnergy = () => {
+  if (
+    player.energy >= TIME_BACK_ENERGY_CONSUMPTION &&
+    player.timeTravelFrames < TIME_BACK_MAX_FRAMES
+  ) {
+    player.energy -= TIME_BACK_ENERGY_CONSUMPTION;
+    player.timeTravelFrames += 1;
+    return true;
   }
 };
 
@@ -120,31 +103,45 @@ const hitPlayer = enemy => {
   player.hit(direction * 20);
 };
 
+const updateEntities = timeTravelPressed => {
+  for (let i = 0; i < clouds0.length; i++) {
+    timeTravelUpdate(clouds0[i], timeTravelPressed);
+    timeTravelUpdate(clouds1[i], timeTravelPressed);
+  }
+
+  for (let i = 0; i < enemies.length; i++) {
+    let enemy = enemies[i];
+
+    timeTravelUpdate(enemy, timeTravelPressed);
+
+    if (enemy.collidesWith(player)) {
+      hitPlayer(enemy);
+    }
+  }
+
+  if (!timeTravelPressed) {
+    // The player stays put when moving back in time.
+    player.update(ladders, platforms, camera);
+  }
+};
+
 const createGameLoop = () => {
   return GameLoop({
     update() {
-      const back = keyPressed("space");
+      let timeTravelPressed = keyPressed("space");
+      let canTimeTravel = false;
 
-      updateAntiGravityState(back);
-
-      for (let i = 0; i < clouds0.length; i++) {
-        timeTravelUpdate(clouds0[i], back);
-        timeTravelUpdate(clouds1[i], back);
-      }
-
-      for (let i = 0; i < enemies.length; i++) {
-        let enemy = enemies[i];
-
-        timeTravelUpdate(enemy, back);
-
-        if (enemy.collidesWith(player)) {
-          hitPlayer(enemy);
+      if (timeTravelPressed) {
+        canTimeTravel = consumeTimeTravelEnergy();
+      } else {
+        if (player.timeTravelFrames > 0) {
+          player.timeTravelFrames -= 1;
         }
       }
 
-      if (!back) {
-        // The player stays put when moving back in time.
-        player.update(ladders, platforms, camera);
+      // Don't update when reaching time travel limit.
+      if (!timeTravelPressed || canTimeTravel) {
+        updateEntities(timeTravelPressed);
       }
 
       camera.update();
@@ -226,16 +223,47 @@ const renderWorldObjects = () => {
   }
 };
 
+const renderEnergyBar = () => {
+  context.fillStyle = "white";
+  context.font = "20px Sans-serif";
+
+  context.fillText("ENERGY", 50, 35);
+
+  const x = 50,
+    y = 50,
+    margin = 5,
+    outlineWidth = canvas.width / 2,
+    outlineHeight = 50,
+    fullWidth = outlineWidth - 2 * margin,
+    heigth = outlineHeight - 2 * margin,
+    width = (player.energy / MAX_ENERGY) * fullWidth;
+
+  context.strokeStyle = "red";
+  context.strokeRect(x, y, outlineWidth, outlineHeight);
+
+  let color = "green";
+  if (player.energy < ENERGY_THRESHOLD_VERY_LOW) {
+    color = "red";
+  } else if (player.energy < ENERGY_THRESHOLD_LOW) {
+    color = "orange";
+  }
+
+  context.fillStyle = color;
+  context.fillRect(x + margin, y + margin, width, heigth);
+};
+
 const renderUi = () => {
   if (player.isDead()) {
     renderInfoText("Press enter");
   }
 
-  if (player.ag > 0) {
-    context.fillStyle = player.ag === 2 ? "white" : "red";
+  renderEnergyBar();
+
+  if (player.ag) {
+    context.fillStyle = "white";
     context.font = "22px Sans-serif";
 
-    context.fillText("ANTI-GRAVITY", 50, 100);
+    context.fillText("ANTI-GRAVITY", 50, 150);
   }
 };
 
@@ -508,8 +536,10 @@ const listenKeys = () => {
   bindKeys(["s"], () => {
     camera.shake(10, 1);
   });
+
+  // Actual keys
   bindKeys(["a"], () => {
-    player.ag = player.ag === 2 ? 0 : 2;
+    player.ag = !player.ag;
   });
 };
 
@@ -519,8 +549,6 @@ const startGame = () => {
   if (state === GAME_STATE_START_SCREEN || player.isDead()) {
     gameLoop.stop();
 
-    backTime = 0;
-    agOffStartTime = null;
     initScene();
     listenKeys();
     playTune("main");

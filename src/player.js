@@ -45,6 +45,9 @@ const STATE_FALLING = 1;
 const STATE_CLIMBING = 2;
 const STATE_DEAD = 3;
 
+export const MAX_ENERGY = 10000;
+const ANTI_GRAVITY_ENERGY_CONSUMPTION = 5;
+
 const playerImage = imageFromSvg(playerSvg);
 const playerLeftfootImage = imageFromSvg(playerLeftfootSvg);
 const playerverticalImage = imageFromSvg(playerverticalSvg);
@@ -63,7 +66,9 @@ export const createPlayer = level => {
     moveLeftFoot: 0,
     image: playerImage,
     walkingSpeed: 5,
-    ag: 2, // Anti-gravity status (0 = off, 1 = warn, 2 = on)
+    ag: false, // Anti-gravity status
+    energy: MAX_ENERGY,
+    timeTravelFrames: 0,
 
     isOnGround() {
       const margin = 5;
@@ -146,6 +151,14 @@ export const createPlayer = level => {
 
       let ladderCollision = this._findLadderCollision(ladders);
 
+      if (this.ag) {
+        if (this.energy >= ANTI_GRAVITY_ENERGY_CONSUMPTION) {
+          this.energy -= ANTI_GRAVITY_ENERGY_CONSUMPTION;
+        } else {
+          this.ag = false;
+        }
+      }
+
       if (!ladderCollision.collision && this.state === STATE_CLIMBING) {
         this.state = STATE_FALLING;
       } else if (this.yVel > 60) {
@@ -167,7 +180,7 @@ export const createPlayer = level => {
       }
 
       if (this.state === STATE_FALLING) {
-        this.yVel += this.ag > 0 ? SMALL_GRAVITY : GRAVITY;
+        this.yVel += this.ag ? SMALL_GRAVITY : GRAVITY;
         dy += this.yVel;
       }
 
