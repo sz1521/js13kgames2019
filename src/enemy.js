@@ -23,8 +23,11 @@
  */
 
 import { Sprite } from "kontra";
+import { imageFromSvg } from "./utils.js";
+import enemySvg from "./images/enemy.svg";
 
 const SPEED = 3;
+const enemyImage = imageFromSvg(enemySvg);
 
 export const createEnemy = platform => {
   return Sprite({
@@ -32,6 +35,7 @@ export const createEnemy = platform => {
     height: 80,
     color: "black",
     dx: SPEED,
+    image: enemyImage,
 
     update() {
       this.advance();
@@ -42,7 +46,12 @@ export const createEnemy = platform => {
         this.dx = SPEED;
       }
     },
-
+    render() {
+      this.context.save();
+      this.context.translate(this.x, this.y);
+      this.context.drawImage(this.image, 0, 0);
+      this.context.restore();
+    },
     collidesWith(object) {
       const xMargin = 10;
       const yMargin = 20;
