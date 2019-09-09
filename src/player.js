@@ -67,6 +67,7 @@ export const createPlayer = level => {
     walkingSpeed: 5,
     ag: false, // Anti-gravity status
     energy: MAX_ENERGY,
+    timeTravelFrames: 0,
 
     isOnGround() {
       const margin = 5;

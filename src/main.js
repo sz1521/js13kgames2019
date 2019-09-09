@@ -39,7 +39,8 @@ const GAME_STATE_START_SCREEN = 0;
 const GAME_STATE_RUNNING = 1;
 
 const FRAMES_PER_SECOND = 60;
-const TIME_BACK_MAX_SECONDS = 3;
+const TIME_BACK_MAX_SECONDS = 2;
+const TIME_BACK_MAX_FRAMES = TIME_BACK_MAX_SECONDS * FRAMES_PER_SECOND;
 
 const TIME_BACK_ENERGY_CONSUMPTION = 35;
 
@@ -73,9 +74,8 @@ const timeTravelUpdate = (entity, back) => {
       entity.position = position;
     }
   } else {
-    const maxLength = TIME_BACK_MAX_SECONDS * FRAMES_PER_SECOND;
     entity.positions.push(entity.position);
-    if (entity.positions.length > maxLength) {
+    if (entity.positions.length > TIME_BACK_MAX_FRAMES) {
       entity.positions.shift();
     }
 
@@ -83,9 +83,14 @@ const timeTravelUpdate = (entity, back) => {
   }
 };
 
-const updateAntiGravityState = back => {
-  if (back && player.energy > 0) {
+const consumeTimeTravelEnergy = () => {
+  if (
+    player.energy >= TIME_BACK_ENERGY_CONSUMPTION &&
+    player.timeTravelFrames < TIME_BACK_MAX_FRAMES
+  ) {
     player.energy -= TIME_BACK_ENERGY_CONSUMPTION;
+    player.timeTravelFrames += 1;
+    return true;
   }
 };
 
@@ -97,30 +102,45 @@ const hitPlayer = enemy => {
 };
 
 const createGameLoop = () => {
+  let timeTravelOk = true;
+
   return GameLoop({
     update() {
-      const back = keyPressed("space");
+      let timeTravelPressed = keyPressed("space");
+      let canTimeTravel = false;
 
-      updateAntiGravityState(back);
-
-      for (let i = 0; i < clouds0.length; i++) {
-        timeTravelUpdate(clouds0[i], back);
-        timeTravelUpdate(clouds1[i], back);
-      }
-
-      for (let i = 0; i < enemies.length; i++) {
-        let enemy = enemies[i];
-
-        timeTravelUpdate(enemy, back);
-
-        if (enemy.collidesWith(player)) {
-          hitPlayer(enemy);
+      if (timeTravelPressed) {
+        canTimeTravel = timeTravelOk && consumeTimeTravelEnergy();
+        if (!canTimeTravel) {
+          timeTravelOk = false;
         }
+      } else {
+        if (player.timeTravelFrames > 0) {
+          player.timeTravelFrames -= 1;
+        }
+        timeTravelOk = true;
       }
 
-      if (!back) {
-        // The player stays put when moving back in time.
-        player.update(ladders, platforms, camera);
+      if (!(timeTravelPressed && !canTimeTravel)) {
+        for (let i = 0; i < clouds0.length; i++) {
+          timeTravelUpdate(clouds0[i], timeTravelPressed);
+          timeTravelUpdate(clouds1[i], timeTravelPressed);
+        }
+
+        for (let i = 0; i < enemies.length; i++) {
+          let enemy = enemies[i];
+
+          timeTravelUpdate(enemy, timeTravelPressed);
+
+          if (enemy.collidesWith(player)) {
+            hitPlayer(enemy);
+          }
+        }
+
+        if (!timeTravelPressed) {
+          // The player stays put when moving back in time.
+          player.update(ladders, platforms, camera);
+        }
       }
 
       camera.update();
