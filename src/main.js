@@ -39,12 +39,9 @@ const GAME_STATE_START_SCREEN = 0;
 const GAME_STATE_RUNNING = 1;
 
 const FRAMES_PER_SECOND = 60;
-const SECONDS_PER_FRAME = 1 / FRAMES_PER_SECOND;
 const TIME_BACK_MAX_SECONDS = 3;
 
-const ANTI_GRAVITY_WARN_TIME = 0.5;
-const ANTI_GRAVITY_DRAIN_TIME = 1.5;
-const ANTI_GRAVITY_RESTORE_TIME = 6000;
+const TIME_BACK_ENERGY_CONSUMPTION = 35;
 
 let state = GAME_STATE_START_SCREEN;
 
@@ -86,30 +83,9 @@ const timeTravelUpdate = (entity, back) => {
   }
 };
 
-let backTime = 0;
-let agOffStartTime = null;
-
 const updateAntiGravityState = back => {
-  let now = performance.now();
-
   if (back) {
-    backTime += SECONDS_PER_FRAME;
-
-    if (backTime > ANTI_GRAVITY_DRAIN_TIME) {
-      player.ag = 0;
-      agOffStartTime = now;
-    } else if (backTime > ANTI_GRAVITY_WARN_TIME) {
-      player.ag = 1;
-    }
-  } else {
-    backTime = Math.max(0, backTime - SECONDS_PER_FRAME);
-
-    if (agOffStartTime && now - agOffStartTime > ANTI_GRAVITY_RESTORE_TIME) {
-      player.ag = 2;
-      agOffStartTime = null;
-    } else if (player.ag === 1 && backTime <= ANTI_GRAVITY_WARN_TIME) {
-      player.ag = 2;
-    }
+    player.energy -= TIME_BACK_ENERGY_CONSUMPTION;
   }
 };
 
@@ -518,8 +494,6 @@ const startGame = () => {
   if (state === GAME_STATE_START_SCREEN || player.isDead()) {
     gameLoop.stop();
 
-    backTime = 0;
-    agOffStartTime = null;
     initScene();
     listenKeys();
     playTune("main");
