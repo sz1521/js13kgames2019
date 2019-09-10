@@ -97,6 +97,7 @@ const consumeTimeTravelEnergy = () => {
 };
 
 const hitPlayer = enemy => {
+  playTune("hit");
   const enemyCenter = enemy.x + enemy.width / 2;
   const playerCenter = player.x + player.width / 2;
   const direction = Math.sign(playerCenter - enemyCenter);
