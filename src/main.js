@@ -44,6 +44,8 @@ const TIME_BACK_MAX_SECONDS = 2;
 const TIME_BACK_MAX_FRAMES = TIME_BACK_MAX_SECONDS * FRAMES_PER_SECOND;
 
 const TIME_BACK_ENERGY_CONSUMPTION = 35;
+const ANTI_GRAVITY_ENERGY_CONSUMPTION = 5;
+
 const ENERGY_THRESHOLD_LOW = 4000;
 const ENERGY_THRESHOLD_VERY_LOW = 2000;
 
@@ -108,7 +110,7 @@ const hitPlayer = enemy => {
   player.hit(direction * 20);
 };
 
-const updateEntities = timeTravelPressed => {
+const updateEntities = (timeTravelPressed, antiGravityPressed) => {
   for (let i = 0; i < clouds0.length; i++) {
     timeTravelUpdate(clouds0[i], timeTravelPressed);
     timeTravelUpdate(clouds1[i], timeTravelPressed);
@@ -124,8 +126,18 @@ const updateEntities = timeTravelPressed => {
     }
   }
 
+  // The player stays put when moving back in time.
   if (!timeTravelPressed) {
-    // The player stays put when moving back in time.
+    if (
+      antiGravityPressed &&
+      player.energy >= ANTI_GRAVITY_ENERGY_CONSUMPTION
+    ) {
+      player.energy -= ANTI_GRAVITY_ENERGY_CONSUMPTION;
+      player.ag = true;
+    } else {
+      player.ag = false;
+    }
+
     player.update(ladders, platforms, camera);
   }
 
@@ -139,6 +151,7 @@ const createGameLoop = () => {
   return GameLoop({
     update() {
       let timeTravelPressed = keyPressed("space");
+      let antiGravityPressed = keyPressed("a");
       let canTimeTravel = false;
 
       if (timeTravelPressed) {
@@ -151,7 +164,7 @@ const createGameLoop = () => {
 
       // Don't update when reaching time travel limit.
       if (!timeTravelPressed || canTimeTravel) {
-        updateEntities(timeTravelPressed);
+        updateEntities(timeTravelPressed, antiGravityPressed);
       }
 
       camera.update();
@@ -572,11 +585,6 @@ const listenKeys = () => {
   bindKeys(["s"], () => {
     camera.shake(10, 1);
   });
-
-  // Actual keys
-  bindKeys(["a"], () => {
-    player.ag = !player.ag;
-  });
 };
 
 let gameLoop = createGameLoop();
@@ -605,8 +613,8 @@ const resize = () => {
 const renderStartScreen = lastText => {
   renderTexts(
     "Controls:",
-    "A - Anti-gravity",
-    "SPACE - Time travel",
+    "Hold A for anti-gravity",
+    "Hold SPACE for time travel",
     "",
     "",
     lastText
