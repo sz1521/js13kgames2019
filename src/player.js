@@ -33,8 +33,9 @@ import playerverticalLeftfootSvg from "./images/player-vertical-leftfoot.svg";
 const PLAYER_SPEED = 7;
 const JUMP_VELOCITY = -15;
 const CLIMB_SPEED = 2;
+const DEADLY_FALLING_SPEED = 40;
 
-const GRAVITY = 2;
+const GRAVITY = 1;
 const SMALL_GRAVITY = 0.5;
 
 const STANDING_WIDTH = 30;
@@ -181,7 +182,7 @@ export const createPlayer = level => {
 
       if (!ladderCollision.collision && this.state === STATE_CLIMBING) {
         this.state = STATE_FALLING;
-      } else if (this.yVel > 60) {
+      } else if (this.yVel > DEADLY_FALLING_SPEED) {
         this.fallingToGround = true;
         this._turnHorizontally();
       } else if (!this.fallingToGround) {
