@@ -23,7 +23,7 @@
  */
 
 import { Sprite, keyPressed } from "kontra";
-import { imageFromSvg } from "./utils.js";
+import { imageFromSvg, random } from "./utils.js";
 import { playTune } from "./music.js";
 import playerSvg from "./images/player.svg";
 import playerLeftfootSvg from "./images/player-leftfoot.svg";
@@ -73,6 +73,7 @@ export const createPlayer = level => {
     swirlingStartTime: undefined,
     swirlingAngle: 0,
     hidden: false,
+    isTimeTravelling: false,
 
     isOnGround() {
       const margin = 5;
@@ -97,6 +98,9 @@ export const createPlayer = level => {
 
       this.context.save();
       this.context.translate(this.x, this.y);
+      if (this.isTimeTravelling) {
+        this.context.translate(random(10), random(10));
+      }
 
       if (this.state === STATE_SWIRLING) {
         const scaling = 0.6 + Math.sin(this.swirlingAngle) * 0.4;

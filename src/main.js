@@ -160,10 +160,14 @@ const createGameLoop = () => {
 
       if (timeTravelPressed) {
         canTimeTravel = consumeTimeTravelEnergy();
+        if (canTimeTravel) {
+          player.isTimeTravelling = true;
+        }
       } else {
         if (player.timeTravelFrames > 0) {
           player.timeTravelFrames -= 1;
         }
+        player.isTimeTravelling = false;
       }
 
       // Don't update when reaching time travel limit.
