@@ -38,6 +38,17 @@ export const createPortal = () => {
       this._oscillateColor();
     },
 
+    collidesWith(object) {
+      const xMargin = this.width * (3 / 8);
+      const yMargin = this.height * (3 / 8);
+      return (
+        this.x < object.x + object.width - xMargin &&
+        this.x + this.width - xMargin > object.x &&
+        this.y < object.y + object.height - yMargin &&
+        this.y + this.height - yMargin > object.y
+      );
+    },
+
     _oscillateColor() {
       if (this.colorUp) {
         if (this.colorValue < 255) {
