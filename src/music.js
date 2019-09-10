@@ -22,11 +22,11 @@
  * SOFTWARE.
  */
 
-import { song, endSong, eatEffect } from "./songs.js";
+import { song, endSong, hitSfx } from "./songs.js";
 import CPlayer from "./musicplayer.js";
 
 const mainTune = document.createElement("audio");
-const eatTune = document.createElement("audio");
+const hitfx = document.createElement("audio");
 const endTune = document.createElement("audio");
 
 export const initMusicPlayer = (audioTrack, tune, isLooped) => {
@@ -57,7 +57,7 @@ export const initMusicPlayer = (audioTrack, tune, isLooped) => {
 export const initialize = () => {
   return Promise.all([
     initMusicPlayer(mainTune, song, true),
-    initMusicPlayer(eatTune, eatEffect, false),
+    initMusicPlayer(hitfx, hitSfx, false),
     initMusicPlayer(endTune, endSong, false)
   ]);
 };
@@ -94,8 +94,9 @@ export const playTune = tune => {
       }, 100);
       break;
     }
-    case "eat": {
-      eatTune.play();
+    case "hit": {
+      hitfx.currentTime = 0;
+      hitfx.play();
       break;
     }
   }
