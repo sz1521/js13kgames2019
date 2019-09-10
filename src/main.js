@@ -103,6 +103,10 @@ const consumeTimeTravelEnergy = () => {
 };
 
 const hitPlayer = enemy => {
+  if (gameFinished) {
+    return;
+  }
+
   playTune("hit");
   const enemyCenter = enemy.x + enemy.width / 2;
   const playerCenter = player.x + player.width / 2;
