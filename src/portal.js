@@ -26,8 +26,32 @@ import { Sprite } from "kontra";
 
 export const createPortal = () => {
   return Sprite({
-    color: "orange",
     width: 200,
-    height: 200
+    height: 200,
+    colorValue: 0,
+    colorUp: true,
+
+    render() {
+      this.context.fillStyle =
+        "rgb(255,150," + this.colorValue.toString() + ")";
+      this.context.fillRect(this.x, this.y, this.width, this.height);
+      this._oscillateColor();
+    },
+
+    _oscillateColor() {
+      if (this.colorUp) {
+        if (this.colorValue < 255) {
+          this.colorValue++;
+        } else {
+          this.colorUp = false;
+        }
+      } else {
+        if (this.colorValue > 0) {
+          this.colorValue--;
+        } else {
+          this.colorUp = true;
+        }
+      }
+    }
   });
 };
