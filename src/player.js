@@ -70,7 +70,9 @@ export const createPlayer = level => {
     ag: false, // Anti-gravity status
     energy: MAX_ENERGY,
     timeTravelFrames: 0,
+    swirlingStartTime: undefined,
     swirlingAngle: 0,
+    hidden: false,
 
     isOnGround() {
       const margin = 5;
@@ -82,10 +84,17 @@ export const createPlayer = level => {
     },
 
     swirl() {
-      this.state = STATE_SWIRLING;
+      if (this.state != STATE_SWIRLING) {
+        this.state = STATE_SWIRLING;
+        this.swirlingStartTime = performance.now();
+      }
     },
 
     render() {
+      if (this.hidden) {
+        return;
+      }
+
       this.context.save();
       this.context.translate(this.x, this.y);
 
@@ -125,6 +134,7 @@ export const createPlayer = level => {
         STANDING_HEIGHT / this.image.height
       );
       this.context.drawImage(this.image, 0, 0);
+
       this.context.restore();
     },
 
@@ -154,7 +164,14 @@ export const createPlayer = level => {
     },
 
     update(ladders, platforms, camera) {
-      if (this.state === STATE_DEAD || this.state === STATE_SWIRLING) {
+      if (this.state === STATE_DEAD) {
+        return;
+      }
+
+      if (this.state === STATE_SWIRLING) {
+        if (!this.hidden && performance.now() - this.swirlingStartTime > 500) {
+          this.hidden = true;
+        }
         return;
       }
 
