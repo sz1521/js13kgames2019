@@ -58,6 +58,8 @@ let enemies = [];
 let player;
 let portal;
 
+let gameFinished = false;
+
 let level = {
   left: 0,
   top: 0,
@@ -125,6 +127,10 @@ const updateEntities = timeTravelPressed => {
   if (!timeTravelPressed) {
     // The player stays put when moving back in time.
     player.update(ladders, platforms, camera);
+  }
+
+  if (portal.collidesWith(player)) {
+    gameFinished = true;
   }
 };
 
@@ -269,6 +275,10 @@ const renderUi = () => {
     context.font = "22px Sans-serif";
 
     context.fillText("ANTI-GRAVITY", 50, 150);
+  }
+
+  if (gameFinished) {
+    renderTexts("CONGRATULATIONS!", "YOU REACHED THE PORTAL!");
   }
 };
 
@@ -574,6 +584,7 @@ const startGame = () => {
   if (state === GAME_STATE_START_SCREEN || player.isDead()) {
     gameLoop.stop();
 
+    gameFinished = false;
     initScene();
     listenKeys();
     playTune("main");
