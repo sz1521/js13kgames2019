@@ -26,6 +26,7 @@ import { createCamera } from "./camera.js";
 import { createPlayer, MAX_ENERGY } from "./player.js";
 import { createEnemy } from "./enemy.js";
 import { createDrone } from "./drone.js";
+import { createPortal } from "./portal.js";
 import { imageFromSvg, random } from "./utils.js";
 import houseSvg from "./images/house.svg";
 import { initialize, playTune } from "./music.js";
@@ -55,6 +56,7 @@ let platforms = [];
 let backgroundObjects = [];
 let enemies = [];
 let player;
+let portal;
 
 let level = {
   left: 0,
@@ -196,6 +198,8 @@ const renderWorldObjects = () => {
   for (let i = 0; i < platforms.length; i++) {
     platforms[i].render();
   }
+
+  portal.render();
 
   for (let i = 0; i < enemies.length; i++) {
     enemies[i].render();
@@ -498,6 +502,10 @@ const initScene = () => {
 
   const tower1 = createTower(1400, 7);
   const tower2 = createTower(2500, 10);
+
+  portal = createPortal();
+  portal.x = tower2.x;
+  portal.y = tower2.top - portal.height;
 
   player = createPlayer(level);
   player.x = 900;
