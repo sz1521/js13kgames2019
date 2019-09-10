@@ -484,10 +484,12 @@ const createTower = (x, floorCount) => {
     platform.y = floorTop;
     platforms.push(platform);
 
-    let enemy = createEnemy(platform);
-    enemy.x = floorLeft + random(floorWidth - enemy.width);
-    enemy.y = floorTop - enemy.height;
-    enemies.push(enemy);
+    if (random() < 0.8) {
+      let enemy = createEnemy(platform);
+      enemy.x = floorLeft + random(floorWidth - enemy.width);
+      enemy.y = floorTop - enemy.height;
+      enemies.push(enemy);
+    }
 
     const ladderCount = Math.floor(random(3) + 1);
 
@@ -539,7 +541,6 @@ const initScene = () => {
     { x: tower1.left - 200, y: tower1.top + 300 },
     { x: tower1.left - 200, y: tower1.bottom - tower1.height / 2 },
     { x: tower1.x, y: tower1.top - 300 },
-    { x: tower1.right + 200, y: tower1.bottom - tower1.height / 2 },
 
     { x: tower2.left - 200, y: tower2.top + 300 },
     { x: tower2.left - 200, y: tower2.bottom - tower2.height / 2 },
@@ -547,7 +548,7 @@ const initScene = () => {
     { x: tower2.right + 200, y: tower2.bottom - tower2.height / 2 }
   ];
 
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 6; i++) {
     let drone = createDrone(player, wayPoints);
     drone.x = random(level.width);
     drone.y = random(level.height - 500);
