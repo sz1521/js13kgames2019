@@ -183,8 +183,10 @@ export const createPlayer = level => {
       if (!ladderCollision.collision && this.state === STATE_CLIMBING) {
         this.state = STATE_FALLING;
       } else if (this.yVel > DEADLY_FALLING_SPEED) {
-        this.fallingToGround = true;
-        this._turnHorizontally();
+        if (!this.fallingToGround) {
+          this.fallingToGround = true;
+          this._turnHorizontally();
+        }
       } else if (!this.fallingToGround) {
         movement = this._handleControls(ladderCollision, platform);
       }
