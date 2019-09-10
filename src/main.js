@@ -355,22 +355,32 @@ const createCloud = (y, z, opacity) => {
 
 const createLadder = () => {
   return Sprite({
-    color: "darkgray",
-    color2: "gray",
+    color: "rgb(100,100,100)",
+    color2: "rgb(80,80,120)",
     width: 30,
     height: level.height,
+    stepGap: random(40),
 
     render: function() {
-      const stepGap = 30;
-      const stepCount = this.height / stepGap;
+      const stepCount = this.height / this.stepGap;
       let cx = this.context;
       cx.save();
 
       for (let i = 0; i < stepCount; i++) {
         cx.fillStyle = this.color2;
-        cx.fillRect(this.x + 2, this.y + i * stepGap, this.width - 4, 15);
+        cx.fillRect(
+          this.x + 8,
+          this.y + i * this.stepGap,
+          this.width - 16,
+          this.stepGap / 2
+        );
         cx.fillStyle = this.color;
-        cx.fillRect(this.x, this.y + i * stepGap + 15, this.width, 15);
+        cx.fillRect(
+          this.x,
+          this.y + i * this.stepGap + this.stepGap / 2,
+          this.width,
+          this.stepGap / 2
+        );
       }
 
       cx.restore();
