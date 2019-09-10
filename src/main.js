@@ -130,6 +130,7 @@ const updateEntities = timeTravelPressed => {
   }
 
   if (portal.collidesWith(player)) {
+    player.swirl();
     gameFinished = true;
   }
 };

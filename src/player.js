@@ -44,6 +44,7 @@ const STATE_ON_PLATFORM = 0;
 const STATE_FALLING = 1;
 const STATE_CLIMBING = 2;
 const STATE_DEAD = 3;
+const STATE_SWIRLING = 4;
 
 export const MAX_ENERGY = 10000;
 const ANTI_GRAVITY_ENERGY_CONSUMPTION = 5;
@@ -69,6 +70,7 @@ export const createPlayer = level => {
     ag: false, // Anti-gravity status
     energy: MAX_ENERGY,
     timeTravelFrames: 0,
+    swirlingAngle: 0,
 
     isOnGround() {
       const margin = 5;
@@ -79,11 +81,21 @@ export const createPlayer = level => {
       return this.state === STATE_DEAD;
     },
 
+    swirl() {
+      this.state = STATE_SWIRLING;
+    },
+
     render() {
       this.context.save();
       this.context.translate(this.x, this.y);
 
-      if (this.fallingToGround) {
+      if (this.state === STATE_SWIRLING) {
+        const scaling = 0.6 + Math.sin(this.swirlingAngle) * 0.4;
+        this.context.scale(scaling, scaling);
+        this.context.rotate(this.swirlingAngle);
+        this.context.translate(-this.width / 2, -this.height / 2);
+        this.swirlingAngle += Math.PI / 32;
+      } else if (this.fallingToGround) {
         // Rotation is around top left corner, adjust accordingly:
         this.context.translate(0, this.height);
         this.context.rotate(-Math.PI / 2);
@@ -142,7 +154,7 @@ export const createPlayer = level => {
     },
 
     update(ladders, platforms, camera) {
-      if (this.state === STATE_DEAD) {
+      if (this.state === STATE_DEAD || this.state === STATE_SWIRLING) {
         return;
       }
 
