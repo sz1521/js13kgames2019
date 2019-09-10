@@ -526,14 +526,20 @@ const initScene = () => {
 };
 
 const renderInfoText = text => {
+  renderTexts(text);
+};
+
+const renderTexts = (...texts) => {
   context.fillStyle = "white";
   context.font = "22px Sans-serif";
-  let textWidth = text.length * 14;
-  context.fillText(
-    text,
-    canvas.width / 2 - textWidth / 2,
-    canvas.height * 0.25
-  );
+
+  for (let i = 0; i < texts.length; i++) {
+    const text = texts[i];
+    let textWidth = text.length * 14;
+    const x = canvas.width / 2 - textWidth / 2;
+    let y = canvas.height * 0.25 + i * 40;
+    context.fillText(text, x, y);
+  }
 };
 
 const listenKeys = () => {
@@ -576,10 +582,21 @@ const resize = () => {
   canvas.height = window.innerHeight - 10;
 };
 
+const renderStartScreen = lastText => {
+  renderTexts(
+    "Controls:",
+    "A - Anti-gravity",
+    "SPACE - Time travel",
+    "",
+    "",
+    lastText
+  );
+};
+
 window.addEventListener("resize", resize, false);
 resize();
 
-renderInfoText("Loading...");
+renderStartScreen("Loading...");
 
 initialize().then(() => {
   bindKeys(["enter"], () => {
@@ -587,5 +604,5 @@ initialize().then(() => {
   });
 
   context.clearRect(0, 0, canvas.width, canvas.height);
-  renderInfoText("Press enter to start");
+  renderStartScreen("Press enter to start");
 });
