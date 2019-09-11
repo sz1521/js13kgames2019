@@ -394,11 +394,11 @@ const createCloud = (y, z, opacity) => {
 
 const createLadder = () => {
   return Sprite({
-    color: "rgb(100,100,100)",
-    color2: "rgb(80,80,120)",
+    color: "rgb(100,60,60)",
+    color2: "rgb(80,20,20)",
     width: 30,
     height: level.height,
-    stepGap: random(40),
+    stepGap: random(25) + 5,
 
     render: function() {
       const stepCount = this.height / this.stepGap;
@@ -430,8 +430,8 @@ const createLadder = () => {
 const createPlatform = isBackground => {
   return Sprite({
     color: "darkgray",
-    color2: "gray",
-    color3: "rgb(55,55,55)",
+    color2: "rgb(80,80,80)",
+    color3: "rgb(55,55,75)",
     width: 200,
     height: !isBackground ? 20 : 400,
     opacity: 0.1,
@@ -452,6 +452,9 @@ const createPlatform = isBackground => {
         cx.globalAlpha = this.opacity;
         cx.fillStyle = this.color3;
         cx.fillRect(this.x, this.y, this.width, this.height);
+        cx.strokeStyle = this.color3;
+        cx.lineWidth = 1;
+        cx.strokeRect(this.x, this.y, this.width, this.height);
       }
 
       cx.restore();
@@ -507,7 +510,7 @@ const createTower = (x, floorCount) => {
     platformBg.y = floorTop;
     platformBgs.push(platformBg);
 
-    if (random() < 0.8) {
+    if (random() < 0.7) {
       let enemy = createEnemy(platform);
       enemy.x = floorLeft + random(floorWidth - enemy.width);
       enemy.y = floorTop - enemy.height;
@@ -558,7 +561,7 @@ const initScene = () => {
   portal.y = tower2.top - portal.height;
 
   player = createPlayer(level);
-  player.x = 900;
+  player.x = 100;
   player.y = level.height - player.height;
 
   const wayPoints = [
@@ -572,7 +575,7 @@ const initScene = () => {
     { x: tower2.right + 200, y: tower2.bottom - tower2.height / 2 }
   ];
 
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < random(5) + 1; i++) {
     let drone = createDrone(player, wayPoints);
     drone.x = random(level.width);
     drone.y = random(level.height - 500);
