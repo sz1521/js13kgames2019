@@ -75,6 +75,8 @@ export const createDrone = (player, wayPoints) => {
       this.target = wayPoints[Math.floor(random(100)) % wayPoints.length];
     },
 
+    hit() {},
+
     render() {
       this.context.save();
       this.context.translate(this.x, this.y);
