@@ -23,10 +23,9 @@
  */
 
 import { Sprite } from "kontra";
-import { imageFromSvg } from "./utils.js";
+import { imageFromSvg, random } from "./utils.js";
 import enemySvg from "./images/enemy.svg";
 
-const SPEED = 3;
 const enemyImage = imageFromSvg(enemySvg);
 
 export const createEnemy = platform => {
@@ -34,16 +33,16 @@ export const createEnemy = platform => {
     width: 30,
     height: 80,
     color: "black",
-    dx: SPEED,
+    dx: random(6) + 1,
     image: enemyImage,
 
     update() {
       this.advance();
-
+      let speed = this.dx;
       if (platform.x + platform.width - this.width < this.x) {
-        this.dx = -SPEED;
+        this.dx = -speed;
       } else if (this.x < platform.x) {
-        this.dx = SPEED;
+        this.dx = -speed;
       }
     },
     render() {
