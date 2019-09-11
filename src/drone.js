@@ -49,7 +49,10 @@ export const createDrone = (player, wayPoints) => {
         this._pickTarget();
       }
 
-      if (getDistance(this, player) < this.PLAYER_FOLLOW_DISTANCE) {
+      if (
+        !(player.isDead() || player.isSwirling()) &&
+        getDistance(this, player) < this.PLAYER_FOLLOW_DISTANCE
+      ) {
         xDiff = player.x - this.x;
         yDiff = player.y - this.y;
         this.image = droneFollowImage;
