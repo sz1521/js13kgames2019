@@ -592,6 +592,16 @@ const createSimpleLevel = () => {
   player = createPlayer(level);
   player.x = 100;
   player.y = level.height - player.height;
+
+  const wayPoints = [
+    { x: tower.left - 400, y: tower.top - 100 },
+    { x: tower.right + 400, y: tower.top + 400 }
+  ];
+
+  let drone = createDrone(player, wayPoints);
+  drone.x = random(level.width);
+  drone.y = random(level.height - 500);
+  enemies.push(drone);
 };
 
 const createLevelTwoTowers = () => {
