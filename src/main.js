@@ -26,6 +26,7 @@ import { createCamera } from "./camera.js";
 import { createPlayer, MAX_ENERGY } from "./player.js";
 import { createEnemy } from "./enemy.js";
 import { createDrone } from "./drone.js";
+import { createPortal } from "./portal.js";
 import { imageFromSvg, random } from "./utils.js";
 import houseSvg from "./images/house.svg";
 import { initialize, playTune } from "./music.js";
@@ -43,6 +44,8 @@ const TIME_BACK_MAX_SECONDS = 2;
 const TIME_BACK_MAX_FRAMES = TIME_BACK_MAX_SECONDS * FRAMES_PER_SECOND;
 
 const TIME_BACK_ENERGY_CONSUMPTION = 35;
+const ANTI_GRAVITY_ENERGY_CONSUMPTION = 5;
+
 const ENERGY_THRESHOLD_LOW = 4000;
 const ENERGY_THRESHOLD_VERY_LOW = 2000;
 
@@ -55,6 +58,9 @@ let platforms = [];
 let backgroundObjects = [];
 let enemies = [];
 let player;
+let portal;
+
+let gameFinished = false;
 
 let level = {
   left: 0,
@@ -97,6 +103,10 @@ const consumeTimeTravelEnergy = () => {
 };
 
 const hitPlayer = enemy => {
+  if (gameFinished) {
+    return;
+  }
+
   playTune("hit");
   const enemyCenter = enemy.x + enemy.width / 2;
   const playerCenter = player.x + player.width / 2;
@@ -104,7 +114,7 @@ const hitPlayer = enemy => {
   player.hit(direction * 20);
 };
 
-const updateEntities = timeTravelPressed => {
+const updateEntities = (timeTravelPressed, antiGravityPressed) => {
   for (let i = 0; i < clouds0.length; i++) {
     timeTravelUpdate(clouds0[i], timeTravelPressed);
     timeTravelUpdate(clouds1[i], timeTravelPressed);
@@ -120,9 +130,24 @@ const updateEntities = timeTravelPressed => {
     }
   }
 
+  // The player stays put when moving back in time.
   if (!timeTravelPressed) {
-    // The player stays put when moving back in time.
+    if (
+      antiGravityPressed &&
+      player.energy >= ANTI_GRAVITY_ENERGY_CONSUMPTION
+    ) {
+      player.energy -= ANTI_GRAVITY_ENERGY_CONSUMPTION;
+      player.ag = true;
+    } else {
+      player.ag = false;
+    }
+
     player.update(ladders, platforms, camera);
+  }
+
+  if (portal.collidesWith(player)) {
+    player.swirl();
+    gameFinished = true;
   }
 };
 
@@ -130,19 +155,24 @@ const createGameLoop = () => {
   return GameLoop({
     update() {
       let timeTravelPressed = keyPressed("space");
+      let antiGravityPressed = keyPressed("a");
       let canTimeTravel = false;
 
       if (timeTravelPressed) {
         canTimeTravel = consumeTimeTravelEnergy();
+        if (canTimeTravel) {
+          player.isTimeTravelling = true;
+        }
       } else {
         if (player.timeTravelFrames > 0) {
           player.timeTravelFrames -= 1;
         }
+        player.isTimeTravelling = false;
       }
 
       // Don't update when reaching time travel limit.
       if (!timeTravelPressed || canTimeTravel) {
-        updateEntities(timeTravelPressed);
+        updateEntities(timeTravelPressed, antiGravityPressed);
       }
 
       camera.update();
@@ -196,6 +226,8 @@ const renderWorldObjects = () => {
   for (let i = 0; i < platforms.length; i++) {
     platforms[i].render();
   }
+
+  portal.render();
 
   for (let i = 0; i < enemies.length; i++) {
     enemies[i].render();
@@ -265,6 +297,10 @@ const renderUi = () => {
     context.font = "22px Sans-serif";
 
     context.fillText("ANTI-GRAVITY", 50, 150);
+  }
+
+  if (gameFinished) {
+    renderTexts("CONGRATULATIONS!", "YOU REACHED THE PORTAL!");
   }
 };
 
@@ -456,10 +492,12 @@ const createTower = (x, floorCount) => {
     platform.y = floorTop;
     platforms.push(platform);
 
-    let enemy = createEnemy(platform);
-    enemy.x = floorLeft + random(floorWidth - enemy.width);
-    enemy.y = floorTop - enemy.height;
-    enemies.push(enemy);
+    if (random() < 0.8) {
+      let enemy = createEnemy(platform);
+      enemy.x = floorLeft + random(floorWidth - enemy.width);
+      enemy.y = floorTop - enemy.height;
+      enemies.push(enemy);
+    }
 
     const ladderCount = Math.floor(random(3) + 1);
 
@@ -499,6 +537,10 @@ const initScene = () => {
   const tower1 = createTower(1400, 7);
   const tower2 = createTower(2500, 10);
 
+  portal = createPortal();
+  portal.x = tower2.x;
+  portal.y = tower2.top - portal.height;
+
   player = createPlayer(level);
   player.x = 900;
   player.y = level.height - player.height;
@@ -507,7 +549,6 @@ const initScene = () => {
     { x: tower1.left - 200, y: tower1.top + 300 },
     { x: tower1.left - 200, y: tower1.bottom - tower1.height / 2 },
     { x: tower1.x, y: tower1.top - 300 },
-    { x: tower1.right + 200, y: tower1.bottom - tower1.height / 2 },
 
     { x: tower2.left - 200, y: tower2.top + 300 },
     { x: tower2.left - 200, y: tower2.bottom - tower2.height / 2 },
@@ -515,7 +556,7 @@ const initScene = () => {
     { x: tower2.right + 200, y: tower2.bottom - tower2.height / 2 }
   ];
 
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 6; i++) {
     let drone = createDrone(player, wayPoints);
     drone.x = random(level.width);
     drone.y = random(level.height - 500);
@@ -526,14 +567,20 @@ const initScene = () => {
 };
 
 const renderInfoText = text => {
+  renderTexts(text);
+};
+
+const renderTexts = (...texts) => {
   context.fillStyle = "white";
   context.font = "22px Sans-serif";
-  let textWidth = text.length * 14;
-  context.fillText(
-    text,
-    canvas.width / 2 - textWidth / 2,
-    canvas.height * 0.25
-  );
+
+  for (let i = 0; i < texts.length; i++) {
+    const text = texts[i];
+    let textWidth = text.length * 14;
+    const x = canvas.width / 2 - textWidth / 2;
+    let y = canvas.height * 0.25 + i * 40;
+    context.fillText(text, x, y);
+  }
 };
 
 const listenKeys = () => {
@@ -547,11 +594,6 @@ const listenKeys = () => {
   bindKeys(["s"], () => {
     camera.shake(10, 1);
   });
-
-  // Actual keys
-  bindKeys(["a"], () => {
-    player.ag = !player.ag;
-  });
 };
 
 let gameLoop = createGameLoop();
@@ -560,6 +602,7 @@ const startGame = () => {
   if (state === GAME_STATE_START_SCREEN || player.isDead()) {
     gameLoop.stop();
 
+    gameFinished = false;
     initScene();
     listenKeys();
     playTune("main");
@@ -576,10 +619,21 @@ const resize = () => {
   canvas.height = window.innerHeight - 10;
 };
 
+const renderStartScreen = lastText => {
+  renderTexts(
+    "Controls:",
+    "Hold A for anti-gravity",
+    "Hold SPACE for time travel",
+    "",
+    "",
+    lastText
+  );
+};
+
 window.addEventListener("resize", resize, false);
 resize();
 
-renderInfoText("Loading...");
+renderStartScreen("Loading...");
 
 initialize().then(() => {
   bindKeys(["enter"], () => {
@@ -587,5 +641,5 @@ initialize().then(() => {
   });
 
   context.clearRect(0, 0, canvas.width, canvas.height);
-  renderInfoText("Press enter to start");
+  renderStartScreen("Press enter to start");
 });
