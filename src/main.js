@@ -636,7 +636,7 @@ const createLevelTwoTowers = () => {
     { x: tower2.right + 200, y: tower2.bottom - tower2.height / 2 }
   ];
 
-  for (let i = 0; i < random(5) + 1; i++) {
+  for (let i = 0; i < 8; i++) {
     let drone = createDrone(player, wayPoints);
     drone.x = random(level.width);
     drone.y = random(level.height - 500);
