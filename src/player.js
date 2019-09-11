@@ -175,6 +175,7 @@ export const createPlayer = level => {
       if (this.state === STATE_SWIRLING) {
         if (!this.hidden && performance.now() - this.swirlingStartTime > 500) {
           this.hidden = true;
+          this.y = -200;
         }
         return;
       }
