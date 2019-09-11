@@ -36,9 +36,6 @@ let { canvas, context } = init();
 
 initKeys();
 
-const GAME_STATE_START_SCREEN = 0;
-const GAME_STATE_RUNNING = 1;
-
 const FRAMES_PER_SECOND = 60;
 const TIME_BACK_MAX_SECONDS = 2;
 const TIME_BACK_MAX_FRAMES = TIME_BACK_MAX_SECONDS * FRAMES_PER_SECOND;
@@ -49,7 +46,7 @@ const ANTI_GRAVITY_ENERGY_CONSUMPTION = 5;
 const ENERGY_THRESHOLD_LOW = 4000;
 const ENERGY_THRESHOLD_VERY_LOW = 2000;
 
-let state = GAME_STATE_START_SCREEN;
+let assetsLoaded = false;
 
 let clouds0 = [];
 let clouds1 = [];
@@ -61,6 +58,7 @@ let enemies = [];
 let player;
 let portal;
 
+let levelNumber = 0;
 let gameFinished = false;
 
 let level = {
@@ -204,6 +202,23 @@ const createGameLoop = () => {
       context.restore();
 
       renderUi();
+      renderHelpTexts();
+    }
+  });
+};
+
+const createStartScreenLoop = () => {
+  return GameLoop({
+    update() {},
+
+    render() {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (!assetsLoaded) {
+        renderStartScreen("Loading...");
+      } else {
+        renderStartScreen("Press enter to start");
+      }
     }
   });
 };
@@ -287,11 +302,15 @@ const renderEnergyBar = () => {
   context.fillRect(x + margin, y + margin, width, heigth);
 };
 
-const renderUi = () => {
-  if (player.isDead()) {
+const renderHelpTexts = () => {
+  if (player && player.isDead()) {
     renderInfoText("Press enter");
+  } else if (gameFinished) {
+    renderTexts("CONGRATULATIONS!", "YOU REACHED THE PORTAL!");
   }
+};
 
+const renderUi = () => {
   renderEnergyBar();
 
   if (player.ag) {
@@ -299,10 +318,6 @@ const renderUi = () => {
     context.font = "22px Sans-serif";
 
     context.fillText("ANTI-GRAVITY", 50, 150);
-  }
-
-  if (gameFinished) {
-    renderTexts("CONGRATULATIONS!", "YOU REACHED THE PORTAL!");
   }
 };
 
@@ -536,7 +551,7 @@ const createTower = (x, floorCount) => {
   };
 };
 
-const initScene = () => {
+const clearLevel = () => {
   ladders = [];
   platforms = [];
   platformBgs = [];
@@ -544,7 +559,9 @@ const initScene = () => {
   clouds1 = [];
   backgroundObjects = [];
   enemies = [];
+};
 
+const createLevelTwoTowers = () => {
   createCloudLayer(2400, 1);
   createCloudLayer(1200, 0.5);
 
@@ -582,6 +599,16 @@ const initScene = () => {
   camera.follow(player);
 };
 
+const createLevel = number => {
+  switch (number) {
+    case 1:
+      createLevelTwoTowers();
+      break;
+    default:
+      break;
+  }
+};
+
 const renderInfoText = text => {
   renderTexts(text);
 };
@@ -612,22 +639,24 @@ const listenKeys = () => {
   });
 };
 
-let gameLoop = createGameLoop();
+let gameLoop = createStartScreenLoop();
 
-const startGame = () => {
-  if (state === GAME_STATE_START_SCREEN || player.isDead()) {
-    gameLoop.stop();
+const startLevel = number => {
+  gameLoop.stop();
 
-    gameFinished = false;
-    initScene();
-    listenKeys();
+  gameFinished = false;
+  clearLevel();
+  createLevel(number);
+  listenKeys();
+
+  if (number === 0) {
+    gameLoop = createStartScreenLoop();
+  } else {
     playTune("main");
-
-    state = GAME_STATE_RUNNING;
-
     gameLoop = createGameLoop();
-    gameLoop.start();
   }
+
+  gameLoop.start();
 };
 
 const resize = () => {
@@ -649,13 +678,18 @@ const renderStartScreen = lastText => {
 window.addEventListener("resize", resize, false);
 resize();
 
-renderStartScreen("Loading...");
+bindKeys(["enter"], () => {
+  if (levelNumber === 0 && assetsLoaded) {
+    levelNumber = 1;
+    startLevel(levelNumber);
+  } else if (player && player.isDead()) {
+    startLevel(levelNumber);
+  }
+});
 
 initialize().then(() => {
-  bindKeys(["enter"], () => {
-    startGame();
-  });
-
-  context.clearRect(0, 0, canvas.width, canvas.height);
-  renderStartScreen("Press enter to start");
+  assetsLoaded = true;
 });
+
+levelNumber = 0;
+startLevel(0);
