@@ -25,8 +25,10 @@
 import { Sprite } from "kontra";
 import { imageFromSvg, random } from "./utils.js";
 import enemySvg from "./images/enemy.svg";
+import enemyHitSvg from "./images/enemyHit.svg";
 
 const enemyImage = imageFromSvg(enemySvg);
+const enemyHitImage = imageFromSvg(enemyHitSvg);
 
 export const createEnemy = platform => {
   return Sprite({
@@ -60,6 +62,12 @@ export const createEnemy = platform => {
         this.y < object.y + object.height - yMargin &&
         this.y + this.height - yMargin > object.y
       );
+    },
+    hit() {
+      this.image = enemyHitImage;
+      setTimeout(() => {
+        this.image = enemyImage;
+      }, 1000);
     }
   });
 };
