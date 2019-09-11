@@ -55,6 +55,7 @@ let clouds0 = [];
 let clouds1 = [];
 let ladders = [];
 let platforms = [];
+let platformBgs = [];
 let backgroundObjects = [];
 let enemies = [];
 let player;
@@ -218,13 +219,14 @@ const renderWorldObjects = () => {
     object.render();
   }
 
+  for (let i = 0; i < platforms.length; i++) {
+    platformBgs[i].render();
+    platforms[i].render();
+  }
+
   for (let i = 0; i < ladders.length; i++) {
     let ladder = ladders[i];
     ladder.render();
-  }
-
-  for (let i = 0; i < platforms.length; i++) {
-    platforms[i].render();
   }
 
   portal.render();
@@ -425,24 +427,31 @@ const createLadder = () => {
   });
 };
 
-const createPlatform = () => {
+const createPlatform = isBackground => {
   return Sprite({
     color: "darkgray",
     color2: "gray",
+    color3: "rgb(55,55,55)",
     width: 200,
-    height: 20,
+    height: !isBackground ? 20 : 400,
+    opacity: 0.1,
 
     render: function() {
       const stepGap = 20;
       const stepCount = this.height / stepGap;
       let cx = this.context;
       cx.save();
-
-      for (let i = 0; i < stepCount; i++) {
-        cx.fillStyle = this.color2;
-        cx.fillRect(this.x + 2, this.y + i * stepGap, this.width - 4, 10);
-        cx.fillStyle = this.color;
-        cx.fillRect(this.x, this.y + i * stepGap + 15, this.width, 10);
+      if (!isBackground) {
+        for (let i = 0; i < stepCount; i++) {
+          cx.fillStyle = this.color2;
+          cx.fillRect(this.x + 2, this.y + i * stepGap, this.width - 4, 10);
+          cx.fillStyle = this.color;
+          cx.fillRect(this.x, this.y + i * stepGap + 15, this.width, 10);
+        }
+      } else {
+        cx.globalAlpha = this.opacity;
+        cx.fillStyle = this.color3;
+        cx.fillRect(this.x, this.y, this.width, this.height);
       }
 
       cx.restore();
@@ -486,11 +495,17 @@ const createTower = (x, floorCount) => {
     const floorTop = level.height - (i + 1) * floorHeight;
     const floorLeft = x - floorWidth / 2;
 
-    let platform = createPlatform();
+    let platform = createPlatform(false);
     platform.width = floorWidth;
     platform.x = floorLeft;
     platform.y = floorTop;
     platforms.push(platform);
+
+    let platformBg = createPlatform(true);
+    platformBg.width = floorWidth;
+    platformBg.x = floorLeft;
+    platformBg.y = floorTop;
+    platformBgs.push(platformBg);
 
     if (random() < 0.8) {
       let enemy = createEnemy(platform);
@@ -524,13 +539,14 @@ const createTower = (x, floorCount) => {
 const initScene = () => {
   ladders = [];
   platforms = [];
+  platformBgs = [];
   clouds0 = [];
   clouds1 = [];
   backgroundObjects = [];
   enemies = [];
 
-  createCloudLayer(2000, 1);
-  createCloudLayer(800, 0.5);
+  createCloudLayer(2400, 1);
+  createCloudLayer(1200, 0.5);
 
   createHouseLayer();
 
@@ -621,9 +637,9 @@ const resize = () => {
 
 const renderStartScreen = lastText => {
   renderTexts(
-    "Controls:",
-    "Hold A for anti-gravity",
-    "Hold SPACE for time travel",
+    "Controls                   ",
+    "Hold A for anti-gravity    ",
+    "Hold SPACE for time travel ",
     "",
     "",
     lastText
