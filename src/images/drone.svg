@@ -11,7 +11,7 @@
  <g>
   <ellipse ry="28" rx="20" cy="30" cx="22" fill="url(#grad)"/>
   <rect width="44" height="10" fill="url(#grad)" x="0" y="0"/>
-  <ellipse ry="20" rx="20" cy="22" cx="22" fill="red" stroke-width="2" stroke="black"/>
+  <ellipse ry="20" rx="20" cy="22" cx="22" fill="rgb(128,0,0)" stroke-width="2" stroke="black"/>
   <ellipse ry="3" rx="3" cy="14" cx="34" fill="white"/>
  </g>
 </svg>

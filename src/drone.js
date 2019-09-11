@@ -25,10 +25,10 @@
 import { Sprite } from "kontra";
 import { getDistance, random, imageFromSvg } from "./utils.js";
 import droneSvg from "./images/drone.svg";
+import droneFollowSvg from "./images/droneFollow.svg";
 
-const SPEED = 1;
-const PLAYER_FOLLOW_DISTANCE = 600;
 const droneImage = imageFromSvg(droneSvg);
+const droneFollowImage = imageFromSvg(droneFollowSvg);
 
 export const createDrone = (player, wayPoints) => {
   return Sprite({
@@ -37,6 +37,8 @@ export const createDrone = (player, wayPoints) => {
     wayPoints: wayPoints,
     target: null,
     image: droneImage,
+    SPEED: random(1) / 2 + 1,
+    PLAYER_FOLLOW_DISTANCE: random(600) + 100,
 
     update() {
       this.advance();
@@ -47,10 +49,12 @@ export const createDrone = (player, wayPoints) => {
         this._pickTarget();
       }
 
-      if (getDistance(this, player) < PLAYER_FOLLOW_DISTANCE) {
+      if (getDistance(this, player) < this.PLAYER_FOLLOW_DISTANCE) {
         xDiff = player.x - this.x;
         yDiff = player.y - this.y;
+        this.image = droneFollowImage;
       } else if (this.target) {
+        this.image = droneImage;
         if (getDistance(this, this.target) > 200) {
           xDiff = this.target.x - this.x;
           yDiff = this.target.y - this.y;
@@ -60,8 +64,8 @@ export const createDrone = (player, wayPoints) => {
         }
       }
 
-      this.dx = Math.sign(xDiff) * SPEED;
-      this.dy = Math.sign(yDiff) * SPEED;
+      this.dx = Math.sign(xDiff) * this.SPEED;
+      this.dy = Math.sign(yDiff) * this.SPEED;
     },
 
     _pickTarget() {

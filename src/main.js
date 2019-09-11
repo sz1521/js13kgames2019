@@ -398,7 +398,7 @@ const createLadder = () => {
     color2: "rgb(80,20,20)",
     width: 30,
     height: level.height,
-    stepGap: random(40),
+    stepGap: random(25) + 5,
 
     render: function() {
       const stepCount = this.height / this.stepGap;
@@ -510,7 +510,7 @@ const createTower = (x, floorCount) => {
     platformBg.y = floorTop;
     platformBgs.push(platformBg);
 
-    if (random() < 0.8) {
+    if (random() < 0.7) {
       let enemy = createEnemy(platform);
       enemy.x = floorLeft + random(floorWidth - enemy.width);
       enemy.y = floorTop - enemy.height;
@@ -561,7 +561,7 @@ const initScene = () => {
   portal.y = tower2.top - portal.height;
 
   player = createPlayer(level);
-  player.x = 900;
+  player.x = 100;
   player.y = level.height - player.height;
 
   const wayPoints = [
@@ -575,7 +575,7 @@ const initScene = () => {
     { x: tower2.right + 200, y: tower2.bottom - tower2.height / 2 }
   ];
 
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < random(5) + 1; i++) {
     let drone = createDrone(player, wayPoints);
     drone.x = random(level.width);
     drone.y = random(level.height - 500);
