@@ -42,6 +42,7 @@ const TIME_BACK_MAX_FRAMES = TIME_BACK_MAX_SECONDS * FRAMES_PER_SECOND;
 
 const TIME_BACK_ENERGY_CONSUMPTION = 35;
 const ANTI_GRAVITY_ENERGY_CONSUMPTION = 5;
+const ENEMY_HIT_ENERGY_CONSUMPTION = 1000;
 
 const ENERGY_THRESHOLD_LOW = 4000;
 const ENERGY_THRESHOLD_VERY_LOW = 2000;
@@ -113,6 +114,9 @@ const hitPlayer = enemy => {
 
   enemy.hit();
   playTune("hit");
+  if (player.energy >= ENEMY_HIT_ENERGY_CONSUMPTION) {
+    player.energy -= ENEMY_HIT_ENERGY_CONSUMPTION;
+  }
   const enemyCenter = enemy.x + enemy.width / 2;
   const playerCenter = player.x + player.width / 2;
   const direction = Math.sign(playerCenter - enemyCenter);
