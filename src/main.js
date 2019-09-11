@@ -644,6 +644,44 @@ const createLevelTwoTowers = () => {
   }
 };
 
+const createLevelHighTower = () => {
+  level.width = 2500;
+  level.height = 6000;
+
+  createCloudLayer(2400, 1);
+  createCloudLayer(1200, 0.5);
+
+  createHouseLayer();
+
+  const tower2 = createTower(level.width / 2, 15);
+
+  let portal = createPortal();
+  portal.x = tower2.x;
+  portal.y = tower2.top - portal.height;
+  portals.push(portal);
+
+  player = createPlayer(level);
+  player.x = 100;
+  player.y = level.height - player.height;
+
+  const wayPoints = [
+    { x: tower2.left - 200, y: tower2.top - 500 },
+    { x: tower2.left - 200, y: tower2.top + 1000 },
+    { x: tower2.left - 200, y: tower2.top + 4000 },
+
+    { x: tower2.right + 200, y: tower2.top - 300 },
+    { x: tower2.right + 200, y: tower2.top + 1500 },
+    { x: tower2.right + 200, y: tower2.top + 4500 }
+  ];
+
+  for (let i = 0; i < 12; i++) {
+    let drone = createDrone(player, wayPoints);
+    drone.x = random(level.width);
+    drone.y = random(level.height - 500);
+    enemies.push(drone);
+  }
+};
+
 const renderInfoText = text => {
   renderTexts(text);
 };
@@ -676,7 +714,12 @@ const listenKeys = () => {
 
 let gameLoop = createStartScreenLoop();
 
-const levelCreations = [() => {}, createSimpleLevel, createLevelTwoTowers];
+const levelCreations = [
+  () => {},
+  createSimpleLevel,
+  createLevelTwoTowers,
+  createLevelHighTower
+];
 
 const startLevel = number => {
   if (number >= levelCreations.length) {
