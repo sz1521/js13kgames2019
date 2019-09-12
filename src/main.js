@@ -589,12 +589,15 @@ const createTower = (x, floorCount) => {
   const floorWidth = 800;
   const floorHeight = 300;
 
+  let isHoleOnPreviousLayer = false;
+
   for (let i = 0; i < floorCount; i++) {
     const floorTop = level.height - (i + 1) * floorHeight;
     const floorLeft = x - floorWidth / 2;
     const floorRight = floorLeft + floorWidth;
 
-    if (random() < 0.8) {
+    // No two consecutive platforms with holes in them.
+    if (isHoleOnPreviousLayer || random() < 0.8) {
       // One solid platform
       let platform = createPlatform(false);
       platform.width = floorWidth;
@@ -610,6 +613,8 @@ const createTower = (x, floorCount) => {
         enemy.y = floorTop - enemy.height;
         enemies.push(enemy);
       }
+
+      isHoleOnPreviousLayer = false;
     } else {
       // Two platforms and a hole between them.
       const lessWidth = floorWidth / 3;
@@ -627,6 +632,8 @@ const createTower = (x, floorCount) => {
       p2.y = floorTop;
       platforms.push(p2);
       addLadders(p2, floorHeight, 1);
+
+      isHoleOnPreviousLayer = true;
     }
 
     let platformBg = createPlatform(true);
@@ -699,7 +706,7 @@ const createLevelTwoTowers = () => {
   const tower2 = createTower(2500, 10);
 
   let portal = createPortal();
-  portal.x = tower2.x;
+  portal.x = tower2.right - tower2.width / 3;
   portal.y = tower2.top - portal.height;
   portals.push(portal);
 
