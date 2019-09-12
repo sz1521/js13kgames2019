@@ -32,10 +32,12 @@ export const createPortal = () => {
     colorUp: true,
 
     render() {
+      this.context.globalAlpha = 0.5;
       this.context.fillStyle =
         "rgb(255,150," + this.colorValue.toString() + ")";
       this.context.fillRect(this.x, this.y, this.width, this.height);
       this._oscillateColor();
+      this.context.globalAlpha = 1;
     },
 
     collidesWith(object) {

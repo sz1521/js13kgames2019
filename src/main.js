@@ -29,8 +29,10 @@ import { createDrone } from "./drone.js";
 import { createPortal } from "./portal.js";
 import { imageFromSvg, random, randomInt } from "./utils.js";
 import houseSvg from "./images/house.svg";
+import playerSvg from "./images/player.svg";
 import { initialize, playTune } from "./music.js";
 const houseImage = imageFromSvg(houseSvg);
+const playerImage = imageFromSvg(playerSvg);
 
 let { canvas, context } = init();
 
@@ -49,6 +51,8 @@ const ENERGY_THRESHOLD_VERY_LOW = 2000;
 
 const GAME_STATE_RUNNING = 0;
 const GAME_STATE_LEVEL_FINISHED = 1;
+
+let timeTraveling = false;
 
 let assetsLoaded = false;
 
@@ -169,8 +173,9 @@ const updateEntities = (timeTravelPressed, antiGravityPressed) => {
 const createGameLoop = () => {
   return GameLoop({
     update() {
-      let timeTravelPressed = keyPressed("space");
-      let antiGravityPressed = keyPressed("a");
+      let timeTravelPressed = keyPressed("t");
+      timeTraveling = timeTravelPressed;
+      let antiGravityPressed = keyPressed("space") || keyPressed("g");
       let canTimeTravel = false;
 
       if (timeTravelPressed) {
@@ -237,11 +242,27 @@ const createStartScreenLoop = () => {
 
     render() {
       context.clearRect(0, 0, canvas.width, canvas.height);
+      let gradient = context.createLinearGradient(
+        0,
+        canvas.height / 2,
+        0,
+        canvas.height
+      );
+      gradient.addColorStop(0, "rgb(0,0,25");
+      gradient.addColorStop(0.2, "rgb(255,0,0)");
+      gradient.addColorStop(0.3, "rgb(255,200,0)");
+      gradient.addColorStop(0.8, "rgb(80,80,200)");
+      gradient.addColorStop(1, "rgb(100,100,255)");
+
+      context.fillStyle = gradient;
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
+      context.drawImage(playerImage, canvas.width * 0.8, canvas.height / 3);
 
       if (!assetsLoaded) {
-        renderStartScreen("Loading...");
+        renderStartScreen("Loading.............          ");
       } else {
-        renderStartScreen("Press enter to start");
+        renderStartScreen("Press enter to start          ");
       }
     }
   });
@@ -313,13 +334,14 @@ const renderEnergyBar = () => {
   const x = 50,
     y = 50,
     margin = 5,
-    outlineWidth = canvas.width / 2,
+    outlineWidth = canvas.width / 4,
     outlineHeight = 50,
     fullWidth = outlineWidth - 2 * margin,
     heigth = outlineHeight - 2 * margin,
     width = (player.energy / MAX_ENERGY) * fullWidth;
 
-  context.strokeStyle = "red";
+  context.lineWidth = 2;
+  context.strokeStyle = "white";
   context.strokeRect(x, y, outlineWidth, outlineHeight);
 
   let color = "green";
@@ -335,21 +357,37 @@ const renderEnergyBar = () => {
 
 const renderHelpTexts = () => {
   if (player && player.isDead()) {
-    renderInfoText("Press enter");
+    renderInfoText("Press enter to try again");
   } else if (gameFinished) {
-    renderTexts("CONGRATULATIONS!", "YOU FINISHED THE GAME!");
+    renderTexts("CONGRATULATIONS!", "YOU ARE ON YOUR WAY TO BACK HOME!");
   }
 };
 
 const renderUi = () => {
   renderEnergyBar();
-
+  context.font = "1em Sans-serif";
+  context.fillStyle = "black";
+  context.globalAlpha = 0.1;
+  context.fillRect(0, 0, canvas.width / 4 + 100, 290);
+  context.globalAlpha = 0.9;
   if (player.ag) {
     context.fillStyle = "white";
-    context.font = "22px Sans-serif";
-
-    context.fillText("ANTI-GRAVITY", 50, 150);
+    context.fillText("ANTI-GRAVITY ACTIVATED", 50, 150);
+  } else {
+    context.fillStyle = "lightgray";
+    context.fillText("ANTI-GRAVITY OFF", 50, 150);
   }
+  context.fillText("[space] or [G]", 50, 170);
+
+  if (timeTraveling) {
+    context.fillStyle = "white";
+    context.fillText("TIME TRAVELING ACTIVATED", 50, 220);
+  } else {
+    context.fillStyle = "lightgray";
+    context.fillText("TIME TRAVELING OFF", 50, 220);
+  }
+  context.fillText("[T]", 50, 240);
+  context.globalAlpha = 1;
 };
 
 const createCloud = (y, z, opacity) => {
@@ -798,10 +836,7 @@ const listenKeys = () => {
   bindKeys(["2"], () => {
     camera.zoomToLevel();
   });
-  bindKeys(["s"], () => {
-    camera.shake(10, 1);
-  });
-  bindKeys(["c"], () => {
+  bindKeys(["n"], () => {
     if (levelNumber < 3) levelNumber++;
     else levelNumber = 1;
     startLevel(levelNumber);
@@ -855,9 +890,15 @@ const resize = () => {
 
 const renderStartScreen = lastText => {
   renderTexts(
-    "Controls                   ",
-    "Hold A for anti-gravity    ",
-    "Hold SPACE for time travel ",
+    "TROPOSPHERE                    ",
+    "",
+    "You are lost in a metropolis in a foreign planet.      ",
+    "You need to find your way to back home using portals   ",
+    "and climbing higher in the troposphere.                ",
+    "",
+    "Controls                                                  ",
+    "Hold SPACE or G for anti-gravity and you will jump longer!",
+    "Hold T for time travel (uses lots of energy!)             ",
     "",
     "",
     lastText
@@ -872,6 +913,7 @@ bindKeys(["enter"], () => {
     levelNumber = 1;
     startLevel(levelNumber);
   } else if (player && player.isDead()) {
+    playTune("main");
     startLevel(levelNumber);
   }
 });

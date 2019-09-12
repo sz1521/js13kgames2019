@@ -239,17 +239,20 @@ export const createPlayer = level => {
       let dx = 0;
       let dy = 0;
 
-      if (keyPressed("left") && this.x > 0) {
+      if ((keyPressed("left") || keyPressed("a")) && this.x > 0) {
         dx = -PLAYER_SPEED;
         this.moveLeft = true;
         if (this.state !== STATE_FALLING) this.moveLeftFoot++;
-      } else if (keyPressed("right") && this.x < level.width - this.width) {
+      } else if (
+        (keyPressed("right") || keyPressed("d")) &&
+        this.x < level.width - this.width
+      ) {
         dx = PLAYER_SPEED;
         this.moveLeft = false;
         if (this.state !== STATE_FALLING) this.moveLeftFoot++;
       }
 
-      const upPressed = keyPressed("up");
+      const upPressed = keyPressed("up") || keyPressed("w");
 
       if (!upPressed) {
         // Up key must be released to jump after reaching the top of
@@ -281,7 +284,10 @@ export const createPlayer = level => {
           dy -= CLIMB_SPEED;
         }
         if (this.state === STATE_CLIMBING) this.moveLeftFoot++;
-      } else if (keyPressed("down") && ladderCollision.collision) {
+      } else if (
+        (keyPressed("down") || keyPressed("s")) &&
+        ladderCollision.collision
+      ) {
         this.state = STATE_CLIMBING;
         this.yVel = 0;
         dy += CLIMB_SPEED;
