@@ -261,7 +261,11 @@ export const createPlayer = level => {
         if (this.state !== STATE_FALLING) this.moveLeftFoot++;
       }
 
-      const upPressed = keyPressed("up") || keyPressed("w");
+      const upPressed =
+        keyPressed("up") ||
+        keyPressed("w") ||
+        keyPressed("space") ||
+        keyPressed("g");
 
       if (!upPressed) {
         // Up key must be released to jump after reaching the top of
