@@ -444,7 +444,7 @@ const createLadder = () => {
     stepGap: random(25) + 5,
 
     render: function() {
-      const stepCount = this.height / this.stepGap;
+      const stepCount = this.height / this.stepGap + 1;
       let cx = this.context;
       cx.save();
 
@@ -500,6 +500,24 @@ const createPlatform = isBackground => {
         cx.strokeRect(this.x, this.y, this.width, this.height);
       }
 
+      cx.restore();
+    }
+  });
+};
+
+const createRoof = () => {
+  return Sprite({
+    color: "darkgray",
+    width: level.width,
+    height: 30,
+    x: 0,
+    y: level.height - 30,
+
+    render: function() {
+      let cx = this.context;
+      cx.save();
+      cx.fillStyle = this.color;
+      cx.fillRect(this.x, this.y, this.width, this.height);
       cx.restore();
     }
   });
@@ -641,6 +659,7 @@ const createLevelTwoTowers = () => {
   createCloudLayer(1200, 0.8);
 
   createHouseLayer(false);
+  backgroundObjects.push(createRoof());
 
   const tower1 = createTower(1400, 7);
   const tower2 = createTower(2500, 10);
@@ -679,6 +698,8 @@ const createLevelHighTower = () => {
 
   createCloudLayer(4400, 0.7);
   createCloudLayer(2200, 0.5);
+
+  backgroundObjects.push(createRoof());
 
   const tower2 = createTower(level.width / 2, 15);
 
