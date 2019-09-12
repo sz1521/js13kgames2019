@@ -27,7 +27,7 @@ import { createPlayer, MAX_ENERGY } from "./player.js";
 import { createEnemy } from "./enemy.js";
 import { createDrone } from "./drone.js";
 import { createPortal } from "./portal.js";
-import { imageFromSvg, random } from "./utils.js";
+import { imageFromSvg, random, randomInt } from "./utils.js";
 import houseSvg from "./images/house.svg";
 import { initialize, playTune } from "./music.js";
 const houseImage = imageFromSvg(houseSvg);
@@ -258,8 +258,11 @@ const renderWorldObjects = () => {
     object.render();
   }
 
-  for (let i = 0; i < platforms.length; i++) {
+  for (let i = 0; i < platformBgs.length; i++) {
     platformBgs[i].render();
+  }
+
+  for (let i = 0; i < platforms.length; i++) {
     platforms[i].render();
   }
 
@@ -564,42 +567,80 @@ const createHouseLayer = isDouble => {
   }
 };
 
+const addLadders = (platform, height, count) => {
+  // Segments so that ladders don't appear too close together.
+  // (although now two ladder can be in the exact same spot)
+  const segmentCount = 6;
+  const segmentWidth = platform.width / segmentCount;
+
+  for (let j = 0; j < count; j++) {
+    let ladder = createLadder();
+    ladder.height = height;
+    ladder.x =
+      platform.x +
+      Math.floor(random(segmentCount)) * segmentWidth +
+      segmentWidth / 2;
+    ladder.y = platform.y;
+    ladders.push(ladder);
+  }
+};
+
 const createTower = (x, floorCount) => {
   const floorWidth = 800;
   const floorHeight = 300;
 
+  let isHoleOnPreviousLayer = false;
+
   for (let i = 0; i < floorCount; i++) {
     const floorTop = level.height - (i + 1) * floorHeight;
     const floorLeft = x - floorWidth / 2;
+    const floorRight = floorLeft + floorWidth;
 
-    let platform = createPlatform(false);
-    platform.width = floorWidth;
-    platform.x = floorLeft;
-    platform.y = floorTop;
-    platforms.push(platform);
+    // No two consecutive platforms with holes in them.
+    if (isHoleOnPreviousLayer || random() < 0.8) {
+      // One solid platform
+      let platform = createPlatform(false);
+      platform.width = floorWidth;
+      platform.x = floorLeft;
+      platform.y = floorTop;
+      platforms.push(platform);
+
+      addLadders(platform, floorHeight, randomInt(1, 4));
+
+      if (random() < 0.7) {
+        let enemy = createEnemy(platform);
+        enemy.x = floorLeft + random(floorWidth - enemy.width);
+        enemy.y = floorTop - enemy.height;
+        enemies.push(enemy);
+      }
+
+      isHoleOnPreviousLayer = false;
+    } else {
+      // Two platforms and a hole between them.
+      const lessWidth = floorWidth / 3;
+
+      let p1 = createPlatform(false);
+      p1.width = lessWidth;
+      p1.x = floorLeft;
+      p1.y = floorTop;
+      platforms.push(p1);
+      addLadders(p1, floorHeight, 1);
+
+      let p2 = createPlatform(false);
+      p2.width = lessWidth;
+      p2.x = floorRight - lessWidth;
+      p2.y = floorTop;
+      platforms.push(p2);
+      addLadders(p2, floorHeight, 1);
+
+      isHoleOnPreviousLayer = true;
+    }
 
     let platformBg = createPlatform(true);
     platformBg.width = floorWidth;
     platformBg.x = floorLeft;
     platformBg.y = floorTop;
     platformBgs.push(platformBg);
-
-    if (random() < 0.7) {
-      let enemy = createEnemy(platform);
-      enemy.x = floorLeft + random(floorWidth - enemy.width);
-      enemy.y = floorTop - enemy.height;
-      enemies.push(enemy);
-    }
-
-    const ladderCount = Math.floor(random(3) + 1);
-
-    for (let j = 0; j < ladderCount; j++) {
-      let ladder = createLadder();
-      ladder.height = floorHeight;
-      ladder.x = floorLeft + random(floorWidth - ladder.width);
-      ladder.y = floorTop;
-      ladders.push(ladder);
-    }
   }
 
   return {
@@ -665,7 +706,7 @@ const createLevelTwoTowers = () => {
   const tower2 = createTower(2500, 10);
 
   let portal = createPortal();
-  portal.x = tower2.x;
+  portal.x = tower2.right - tower2.width / 3;
   portal.y = tower2.top - portal.height;
   portals.push(portal);
 
@@ -693,7 +734,7 @@ const createLevelTwoTowers = () => {
 };
 
 const createLevelHighTower = () => {
-  level.width = 2500;
+  level.width = 5000;
   level.height = 6000;
 
   createCloudLayer(4400, 0.7);
@@ -701,7 +742,9 @@ const createLevelHighTower = () => {
 
   backgroundObjects.push(createRoof());
 
-  const tower2 = createTower(level.width / 2, 15);
+  createTower(level.width * (1 / 4) + 100, 8);
+  const tower2 = createTower(level.width * (2 / 4), 15);
+  createTower(level.width * (3 / 4) - 100, 12);
 
   let portal = createPortal();
   portal.x = tower2.x;
