@@ -909,7 +909,7 @@ const renderStartScreen = lastText => {
     "Press SPACE or G for anti-gravity and you will jump longer!",
     "Hold T for time travel (uses lots of energy!)              ",
     "",
-    "(c) 2019 by Sami H ja Tero J          ",
+    "(c) 2019 by Sami H & Tero J          ",
     "",
     lastText
   );
