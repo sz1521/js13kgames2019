@@ -200,7 +200,10 @@ export const createPlayer = level => {
 
       if (!ladderCollision.collision && this.state === STATE_CLIMBING) {
         this.state = STATE_FALLING;
-      } else if (this.yVel > DEADLY_FALLING_SPEED) {
+      } else if (
+        this.yVel > DEADLY_FALLING_SPEED &&
+        (!keyPressed("space") && !keyPressed("g"))
+      ) {
         if (!this.fallingToGround) {
           this.fallingToGround = true;
           this._turnHorizontally();
@@ -261,18 +264,17 @@ export const createPlayer = level => {
         if (this.state !== STATE_FALLING) this.moveLeftFoot++;
       }
 
-      const upPressed =
-        keyPressed("up") ||
-        keyPressed("w") ||
-        keyPressed("space") ||
-        keyPressed("g");
-
+      const upPressed = keyPressed("up") || keyPressed("w");
       if (!upPressed) {
         // Up key must be released to jump after reaching the top of
         // the stairs.
         this.stopClimbing = false;
       }
-      if (upPressed && !this.stopClimbing) {
+      if (
+        (upPressed && !this.stopClimbing) ||
+        keyPressed("space") ||
+        keyPressed("g")
+      ) {
         if (
           this.state === STATE_CLIMBING &&
           dx === 0 &&
