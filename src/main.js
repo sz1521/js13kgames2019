@@ -693,7 +693,7 @@ const createLevelTwoTowers = () => {
 };
 
 const createLevelHighTower = () => {
-  level.width = 2500;
+  level.width = 5000;
   level.height = 6000;
 
   createCloudLayer(4400, 0.7);
@@ -701,7 +701,9 @@ const createLevelHighTower = () => {
 
   backgroundObjects.push(createRoof());
 
-  const tower2 = createTower(level.width / 2, 15);
+  createTower(level.width * (1 / 4) + 100, 8);
+  const tower2 = createTower(level.width * (2 / 4), 15);
+  createTower(level.width * (3 / 4) - 100, 12);
 
   let portal = createPortal();
   portal.x = tower2.x;
