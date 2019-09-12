@@ -14,6 +14,15 @@ export const random = (max = 1) => {
 };
 
 /*
+ * Gets random int between [min, max).
+ */
+export const randomInt = (min, max) => {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min)) + min;
+};
+
+/*
  * Returns distance between two points.
  */
 export const getDistance = (a, b) => {
