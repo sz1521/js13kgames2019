@@ -47,6 +47,9 @@ const ENEMY_HIT_ENERGY_CONSUMPTION = 1000;
 const ENERGY_THRESHOLD_LOW = 4000;
 const ENERGY_THRESHOLD_VERY_LOW = 2000;
 
+const GAME_STATE_RUNNING = 0;
+const GAME_STATE_LEVEL_FINISHED = 1;
+
 let assetsLoaded = false;
 
 let clouds0 = [];
@@ -56,11 +59,13 @@ let platforms = [];
 let platformBgs = [];
 let backgroundObjects = [];
 let enemies = [];
+let portals = [];
 let player;
-let portal;
 
 let levelNumber = 0;
 let gameFinished = false;
+
+let state = GAME_STATE_RUNNING;
 
 let level = {
   left: 0,
@@ -149,9 +154,15 @@ const updateEntities = (timeTravelPressed, antiGravityPressed) => {
     player.update(ladders, platforms, camera);
   }
 
-  if (portal.collidesWith(player)) {
-    player.swirl();
-    gameFinished = true;
+  for (let i = 0; i < portals.length; i++) {
+    if (portals[i].collidesWith(player) && state === GAME_STATE_RUNNING) {
+      state = GAME_STATE_LEVEL_FINISHED;
+      player.swirl();
+      setTimeout(() => {
+        levelNumber++;
+        startLevel(levelNumber);
+      }, 1500);
+    }
   }
 };
 
@@ -249,7 +260,9 @@ const renderWorldObjects = () => {
     ladder.render();
   }
 
-  portal.render();
+  for (let i = 0; i < portals.length; i++) {
+    portals[i].render();
+  }
 
   for (let i = 0; i < enemies.length; i++) {
     enemies[i].render();
@@ -311,7 +324,7 @@ const renderHelpTexts = () => {
   if (player && player.isDead()) {
     renderInfoText("Press enter");
   } else if (gameFinished) {
-    renderTexts("CONGRATULATIONS!", "YOU REACHED THE PORTAL!");
+    renderTexts("CONGRATULATIONS!", "YOU FINISHED THE GAME!");
   }
 };
 
@@ -567,9 +580,39 @@ const clearLevel = () => {
   clouds1 = [];
   backgroundObjects = [];
   enemies = [];
+  portals = [];
+};
+
+const createSimpleLevel = () => {
+  level.width = 2000;
+  level.height = 1500;
+
+  const tower = createTower(1000, 3);
+
+  let portal = createPortal();
+  portal.x = tower.x - portal.width / 2;
+  portal.y = tower.top - portal.height;
+  portals.push(portal);
+
+  player = createPlayer(level);
+  player.x = 100;
+  player.y = level.height - player.height;
+
+  const wayPoints = [
+    { x: tower.left - 400, y: tower.top - 100 },
+    { x: tower.right + 400, y: tower.top + 400 }
+  ];
+
+  let drone = createDrone(player, wayPoints);
+  drone.x = random(level.width);
+  drone.y = random(level.height - 500);
+  enemies.push(drone);
 };
 
 const createLevelTwoTowers = () => {
+  level.width = 4000;
+  level.height = 4000;
+
   createCloudLayer(2400, 1);
   createCloudLayer(1200, 0.5);
 
@@ -578,9 +621,10 @@ const createLevelTwoTowers = () => {
   const tower1 = createTower(1400, 7);
   const tower2 = createTower(2500, 10);
 
-  portal = createPortal();
+  let portal = createPortal();
   portal.x = tower2.x;
   portal.y = tower2.top - portal.height;
+  portals.push(portal);
 
   player = createPlayer(level);
   player.x = 100;
@@ -597,23 +641,49 @@ const createLevelTwoTowers = () => {
     { x: tower2.right + 200, y: tower2.bottom - tower2.height / 2 }
   ];
 
-  for (let i = 0; i < random(5) + 1; i++) {
+  for (let i = 0; i < 8; i++) {
     let drone = createDrone(player, wayPoints);
     drone.x = random(level.width);
     drone.y = random(level.height - 500);
     enemies.push(drone);
   }
-
-  camera.follow(player);
 };
 
-const createLevel = number => {
-  switch (number) {
-    case 1:
-      createLevelTwoTowers();
-      break;
-    default:
-      break;
+const createLevelHighTower = () => {
+  level.width = 2500;
+  level.height = 6000;
+
+  createCloudLayer(2400, 1);
+  createCloudLayer(1200, 0.5);
+
+  createHouseLayer();
+
+  const tower2 = createTower(level.width / 2, 15);
+
+  let portal = createPortal();
+  portal.x = tower2.x;
+  portal.y = tower2.top - portal.height;
+  portals.push(portal);
+
+  player = createPlayer(level);
+  player.x = 100;
+  player.y = level.height - player.height;
+
+  const wayPoints = [
+    { x: tower2.left - 200, y: tower2.top - 500 },
+    { x: tower2.left - 200, y: tower2.top + 1000 },
+    { x: tower2.left - 200, y: tower2.top + 4000 },
+
+    { x: tower2.right + 200, y: tower2.top - 300 },
+    { x: tower2.right + 200, y: tower2.top + 1500 },
+    { x: tower2.right + 200, y: tower2.top + 4500 }
+  ];
+
+  for (let i = 0; i < 12; i++) {
+    let drone = createDrone(player, wayPoints);
+    drone.x = random(level.width);
+    drone.y = random(level.height - 500);
+    enemies.push(drone);
   }
 };
 
@@ -649,21 +719,41 @@ const listenKeys = () => {
 
 let gameLoop = createStartScreenLoop();
 
-const startLevel = number => {
-  gameLoop.stop();
+const levelCreations = [
+  () => {},
+  createSimpleLevel,
+  createLevelTwoTowers,
+  createLevelHighTower
+];
 
+const startLevel = number => {
+  if (number >= levelCreations.length) {
+    gameFinished = true;
+    return;
+  }
+
+  gameLoop.stop();
   gameFinished = false;
   clearLevel();
-  createLevel(number);
+
+  const createLevel = levelCreations[number];
+  createLevel();
   listenKeys();
 
   if (number === 0) {
     gameLoop = createStartScreenLoop();
   } else {
-    playTune("main");
+    camera.follow(player);
     gameLoop = createGameLoop();
   }
 
+  if (number === 1) {
+    // Music starts at the first actual level
+    // and continues from level to level.
+    playTune("main");
+  }
+
+  state = GAME_STATE_RUNNING;
   gameLoop.start();
 };
 
@@ -700,4 +790,4 @@ initialize().then(() => {
 });
 
 levelNumber = 0;
-startLevel(0);
+startLevel(levelNumber);

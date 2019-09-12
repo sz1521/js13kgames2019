@@ -84,6 +84,10 @@ export const createPlayer = level => {
       return this.state === STATE_DEAD;
     },
 
+    isSwirling() {
+      return this.state === STATE_SWIRLING;
+    },
+
     swirl() {
       if (this.state != STATE_SWIRLING) {
         this.state = STATE_SWIRLING;
