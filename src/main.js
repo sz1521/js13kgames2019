@@ -194,25 +194,33 @@ const createGameLoop = () => {
     },
 
     render() {
-      var gradient = context.createLinearGradient(0, 0, 0, 170);
-      gradient.addColorStop(0, "rgba(0,0,0,0.5)");
-      gradient.addColorStop(1, "rgba(0,0,0,0)");
-      context.fillStyle = gradient;
-      context.fillRect(0, 0, canvas.width, canvas.height);
-
+      let gradient;
       context.save();
       context.translate(canvas.width / 2, canvas.height / 2);
       context.scale(camera.zoom, camera.zoom);
       context.translate(-camera.x, -camera.y);
+      gradient = context.createLinearGradient(0, 0, 0, level.height);
 
-      var gradient2 = context.createLinearGradient(0, 0, 0, level.height);
-      gradient2.addColorStop(0, "rgb(0,0,25");
-      gradient2.addColorStop(0.2, "rgb(255,0,0)");
-      gradient2.addColorStop(0.4, "rgb(255,200,0)");
-      gradient2.addColorStop(1, "rgb(100,100,255)");
-      context.fillStyle = gradient2;
+      switch (levelNumber) {
+        case 1: {
+          gradient.addColorStop(0, "rgb(80,80,200)");
+          gradient.addColorStop(1, "rgb(100,100,255)");
+          break;
+        }
+        case 2: {
+          gradient.addColorStop(0, "rgb(255,200,0)");
+          gradient.addColorStop(1, "rgb(80,80,200)");
+          break;
+        }
+        case 3: {
+          gradient.addColorStop(0, "rgb(0,0,25");
+          gradient.addColorStop(0.5, "rgb(255,0,0)");
+          gradient.addColorStop(1, "rgb(255,200,0)");
+          break;
+        }
+      }
+      context.fillStyle = gradient;
       context.fillRect(0, 0, level.width, level.height);
-
       renderWorldObjects();
 
       context.restore();
@@ -296,6 +304,8 @@ const renderEnergyBar = () => {
   context.font = "20px Sans-serif";
 
   context.fillText("ENERGY", 50, 35);
+  context.fillText("LEVEL", canvas.width - 120, 35);
+  context.fillText(levelNumber, canvas.width - 40, 35);
 
   const x = 50,
     y = 50,
@@ -507,7 +517,7 @@ const createCloudLayer = (y, opacity) => {
   }
 };
 
-const createHouseLayer = () => {
+const createHouseLayer = isDouble => {
   for (let i = 0; i < canvas.width / 10; i++) {
     let house = Sprite({
       width: 80,
@@ -520,6 +530,19 @@ const createHouseLayer = () => {
     house.x = i * Math.random() * 100;
     house.y = level.height - house.height;
     backgroundObjects.push(house);
+    if (isDouble) {
+      let house2 = Sprite({
+        width: 80,
+        height: 150 - Math.random() * 100,
+
+        render: function() {
+          this.context.drawImage(houseImage, this.x, this.y);
+        }
+      });
+      house2.x = house.x;
+      house2.y = house.y - house.height;
+      backgroundObjects.push(house2);
+    }
   }
 };
 
@@ -587,6 +610,7 @@ const createSimpleLevel = () => {
   level.width = 2000;
   level.height = 1500;
 
+  createHouseLayer(true);
   const tower = createTower(1000, 3);
 
   let portal = createPortal();
@@ -614,9 +638,9 @@ const createLevelTwoTowers = () => {
   level.height = 4000;
 
   createCloudLayer(2400, 1);
-  createCloudLayer(1200, 0.5);
+  createCloudLayer(1200, 0.8);
 
-  createHouseLayer();
+  createHouseLayer(false);
 
   const tower1 = createTower(1400, 7);
   const tower2 = createTower(2500, 10);
@@ -627,7 +651,7 @@ const createLevelTwoTowers = () => {
   portals.push(portal);
 
   player = createPlayer(level);
-  player.x = 100;
+  player.x = 1100;
   player.y = level.height - player.height;
 
   const wayPoints = [
@@ -653,10 +677,8 @@ const createLevelHighTower = () => {
   level.width = 2500;
   level.height = 6000;
 
-  createCloudLayer(2400, 1);
-  createCloudLayer(1200, 0.5);
-
-  createHouseLayer();
+  createCloudLayer(4400, 0.7);
+  createCloudLayer(2200, 0.5);
 
   const tower2 = createTower(level.width / 2, 15);
 
@@ -666,7 +688,7 @@ const createLevelHighTower = () => {
   portals.push(portal);
 
   player = createPlayer(level);
-  player.x = 100;
+  player.x = 1100;
   player.y = level.height - player.height;
 
   const wayPoints = [
@@ -714,6 +736,11 @@ const listenKeys = () => {
   });
   bindKeys(["s"], () => {
     camera.shake(10, 1);
+  });
+  bindKeys(["c"], () => {
+    if (levelNumber < 3) levelNumber++;
+    else levelNumber = 1;
+    startLevel(levelNumber);
   });
 };
 
