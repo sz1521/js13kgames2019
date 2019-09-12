@@ -171,9 +171,9 @@ const updateEntities = (timeTravelPressed, antiGravityPressed) => {
 const createGameLoop = () => {
   return GameLoop({
     update() {
-      let timeTravelPressed = keyPressed("space");
+      let timeTravelPressed = keyPressed("t");
       timeTraveling = timeTravelPressed;
-      let antiGravityPressed = keyPressed("a");
+      let antiGravityPressed = keyPressed("space");
       let canTimeTravel = false;
 
       if (timeTravelPressed) {
@@ -322,7 +322,7 @@ const renderEnergyBar = () => {
     heigth = outlineHeight - 2 * margin,
     width = (player.energy / MAX_ENERGY) * fullWidth;
 
-  context.stroke = 2;
+  context.lineWidth = 2;
   context.strokeStyle = "white";
   context.strokeRect(x, y, outlineWidth, outlineHeight);
 
@@ -359,7 +359,7 @@ const renderUi = () => {
     context.fillStyle = "lightgray";
     context.fillText("ANTI-GRAVITY OFF", 50, 150);
   }
-  context.fillText("[a]", 50, 170);
+  context.fillText("[space]", 50, 170);
 
   if (timeTraveling) {
     context.fillStyle = "white";
@@ -368,7 +368,7 @@ const renderUi = () => {
     context.fillStyle = "lightgray";
     context.fillText("TIME TRAVELING OFF", 50, 220);
   }
-  context.fillText("[space]", 50, 240);
+  context.fillText("[T]", 50, 240);
   context.globalAlpha = 1;
 };
 
@@ -818,10 +818,7 @@ const listenKeys = () => {
   bindKeys(["2"], () => {
     camera.zoomToLevel();
   });
-  bindKeys(["s"], () => {
-    camera.shake(10, 1);
-  });
-  bindKeys(["c"], () => {
+  bindKeys(["n"], () => {
     if (levelNumber < 3) levelNumber++;
     else levelNumber = 1;
     startLevel(levelNumber);
@@ -879,8 +876,8 @@ const renderStartScreen = lastText => {
     "You need to find your way to back home using portals!  ",
     "",
     "Controls                                             ",
-    "Hold A for anti-gravity and you will jump longer!    ",
-    "Hold SPACE for time travel (uses lots of energy!)    ",
+    "Hold SPACE for anti-gravity and you will jump longer!",
+    "Hold T for time travel (uses lots of energy!)        ",
     "",
     "",
     lastText
