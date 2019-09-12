@@ -894,7 +894,7 @@ const renderStartScreen = lastText => {
     "",
     "You are lost in a metropolis in a foreign planet.      ",
     "You need to find your way to back home using portals   ",
-    "and climbing higher in troposphere.                    ",
+    "and climbing higher in the troposphere.                ",
     "",
     "Controls                                                  ",
     "Hold SPACE or G for anti-gravity and you will jump longer!",
