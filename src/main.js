@@ -29,8 +29,10 @@ import { createDrone } from "./drone.js";
 import { createPortal } from "./portal.js";
 import { imageFromSvg, random, randomInt } from "./utils.js";
 import houseSvg from "./images/house.svg";
+import playerSvg from "./images/player.svg";
 import { initialize, playTune } from "./music.js";
 const houseImage = imageFromSvg(houseSvg);
+const playerImage = imageFromSvg(playerSvg);
 
 let { canvas, context } = init();
 
@@ -173,7 +175,7 @@ const createGameLoop = () => {
     update() {
       let timeTravelPressed = keyPressed("t");
       timeTraveling = timeTravelPressed;
-      let antiGravityPressed = keyPressed("space");
+      let antiGravityPressed = keyPressed("space") || keyPressed("g");
       let canTimeTravel = false;
 
       if (timeTravelPressed) {
@@ -240,6 +242,22 @@ const createStartScreenLoop = () => {
 
     render() {
       context.clearRect(0, 0, canvas.width, canvas.height);
+      let gradient = context.createLinearGradient(
+        0,
+        canvas.height / 2,
+        0,
+        canvas.height
+      );
+      gradient.addColorStop(0, "rgb(0,0,25");
+      gradient.addColorStop(0.2, "rgb(255,0,0)");
+      gradient.addColorStop(0.3, "rgb(255,200,0)");
+      gradient.addColorStop(0.8, "rgb(80,80,200)");
+      gradient.addColorStop(1, "rgb(100,100,255)");
+
+      context.fillStyle = gradient;
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
+      context.drawImage(playerImage, canvas.width * 0.8, canvas.height / 3);
 
       if (!assetsLoaded) {
         renderStartScreen("Loading.............          ");
@@ -359,7 +377,7 @@ const renderUi = () => {
     context.fillStyle = "lightgray";
     context.fillText("ANTI-GRAVITY OFF", 50, 150);
   }
-  context.fillText("[space]", 50, 170);
+  context.fillText("[space] or [G]", 50, 170);
 
   if (timeTraveling) {
     context.fillStyle = "white";
@@ -872,12 +890,15 @@ const resize = () => {
 
 const renderStartScreen = lastText => {
   renderTexts(
-    "You are lost in a metropolis in foreign planet.        ",
-    "You need to find your way to back home using portals!  ",
+    "TROPOSPHERE                    ",
     "",
-    "Controls                                             ",
-    "Hold SPACE for anti-gravity and you will jump longer!",
-    "Hold T for time travel (uses lots of energy!)        ",
+    "You are lost in a metropolis in a foreign planet.      ",
+    "You need to find your way to back home using portals   ",
+    "and climbing higher in troposphere.                    ",
+    "",
+    "Controls                                                  ",
+    "Hold SPACE or G for anti-gravity and you will jump longer!",
+    "Hold T for time travel (uses lots of energy!)             ",
     "",
     "",
     lastText
