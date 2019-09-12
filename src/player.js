@@ -35,6 +35,8 @@ const JUMP_VELOCITY = -15;
 const CLIMB_SPEED = 2;
 const DEADLY_FALLING_SPEED = 40;
 
+const OFF_LEDGE_JUMP_DELAY_MS = 200;
+
 const GRAVITY = 1;
 const SMALL_GRAVITY = 0.5;
 
@@ -60,6 +62,7 @@ export const createPlayer = level => {
     height: STANDING_HEIGHT,
     xVel: 0, // Horizontal velocity
     yVel: 0, // Vertical velocity, affected by jumping and gravity
+    latestOnPlatformTime: 0,
     state: STATE_ON_PLATFORM,
     fallingToGround: false,
     stopClimbing: false,
@@ -176,8 +179,10 @@ export const createPlayer = level => {
         return;
       }
 
+      const now = performance.now();
+
       if (this.state === STATE_SWIRLING) {
-        if (!this.hidden && performance.now() - this.swirlingStartTime > 500) {
+        if (!this.hidden && now - this.swirlingStartTime > 500) {
           this.hidden = true;
           this.y = -200;
         }
@@ -185,6 +190,10 @@ export const createPlayer = level => {
       }
 
       const platform = this._findPlatform(platforms);
+      if (platform) {
+        this.latestOnPlatformTime = now;
+      }
+
       let movement = { dx: 0, dy: 0 };
 
       let ladderCollision = this._findLadderCollision(ladders);
@@ -197,7 +206,7 @@ export const createPlayer = level => {
           this._turnHorizontally();
         }
       } else if (!this.fallingToGround) {
-        movement = this._handleControls(ladderCollision, platform);
+        movement = this._handleControls(now, ladderCollision, platform);
       }
 
       let { dx, dy } = movement;
@@ -235,7 +244,7 @@ export const createPlayer = level => {
       this.height = oldWidth;
     },
 
-    _handleControls(ladderCollision, platform) {
+    _handleControls(now, ladderCollision, platform) {
       let dx = 0;
       let dy = 0;
 
@@ -271,12 +280,14 @@ export const createPlayer = level => {
           this.state = STATE_ON_PLATFORM;
           this.stopClimbing = true;
         } else if (
-          this.state !== STATE_FALLING &&
-          (platform || this.isOnGround()) &&
+          (platform ||
+            now - this.latestOnPlatformTime < OFF_LEDGE_JUMP_DELAY_MS ||
+            this.isOnGround()) &&
           !(dx === 0 && ladderCollision.collidesHigh)
         ) {
           this.yVel = JUMP_VELOCITY;
           this.state = STATE_FALLING;
+          this.latestOnPlatformTime = 0;
         } else if (this.yVel >= 0 && ladderCollision.collision) {
           // Climb when not jumping
           this.state = STATE_CLIMBING;
