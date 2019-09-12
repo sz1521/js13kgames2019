@@ -357,9 +357,14 @@ const renderEnergyBar = () => {
 
 const renderHelpTexts = () => {
   if (player && player.isDead()) {
-    renderInfoText("Press enter to try again");
+    renderInfoText("Press ENTER to try again");
   } else if (gameFinished) {
-    renderTexts("CONGRATULATIONS!", "YOU ARE ON YOUR WAY TO BACK HOME!");
+    renderTexts(
+      "CONGRATULATIONS!       ",
+      "YOU ARE ON YOUR WAY TO BACK HOME!      ",
+      "(Press ESC to continue)"
+    );
+    levelNumber = 1;
   }
 };
 
@@ -837,8 +842,12 @@ const listenKeys = () => {
     camera.zoomToLevel();
   });
   bindKeys(["n"], () => {
-    if (levelNumber < 3) levelNumber++;
+    if (levelNumber < 4) levelNumber++;
     else levelNumber = 1;
+    startLevel(levelNumber);
+  });
+  bindKeys(["esc"], () => {
+    levelNumber = 0;
     startLevel(levelNumber);
   });
 };
@@ -890,7 +899,7 @@ const resize = () => {
 
 const renderStartScreen = lastText => {
   renderTexts(
-    "TROPOSPHERE                    ",
+    "TROPOSPHERE                        ",
     "",
     "You are lost in a metropolis in a foreign planet.         ",
     "You need to find your way to back home by                 ",
@@ -900,6 +909,7 @@ const renderStartScreen = lastText => {
     "Press SPACE or G for anti-gravity and you will jump longer!",
     "Hold T for time travel (uses lots of energy!)              ",
     "",
+    "(c) 2019 by Sami H ja Tero J          ",
     "",
     lastText
   );
