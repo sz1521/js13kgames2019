@@ -50,6 +50,8 @@ const ENERGY_THRESHOLD_VERY_LOW = 2000;
 const GAME_STATE_RUNNING = 0;
 const GAME_STATE_LEVEL_FINISHED = 1;
 
+let timeTraveling = false;
+
 let assetsLoaded = false;
 
 let clouds0 = [];
@@ -170,6 +172,7 @@ const createGameLoop = () => {
   return GameLoop({
     update() {
       let timeTravelPressed = keyPressed("space");
+      timeTraveling = timeTravelPressed;
       let antiGravityPressed = keyPressed("a");
       let canTimeTravel = false;
 
@@ -239,9 +242,9 @@ const createStartScreenLoop = () => {
       context.clearRect(0, 0, canvas.width, canvas.height);
 
       if (!assetsLoaded) {
-        renderStartScreen("Loading...");
+        renderStartScreen("Loading.............          ");
       } else {
-        renderStartScreen("Press enter to start");
+        renderStartScreen("Press enter to start          ");
       }
     }
   });
@@ -310,13 +313,14 @@ const renderEnergyBar = () => {
   const x = 50,
     y = 50,
     margin = 5,
-    outlineWidth = canvas.width / 2,
+    outlineWidth = canvas.width / 4,
     outlineHeight = 50,
     fullWidth = outlineWidth - 2 * margin,
     heigth = outlineHeight - 2 * margin,
     width = (player.energy / MAX_ENERGY) * fullWidth;
 
-  context.strokeStyle = "red";
+  context.stroke = 2;
+  context.strokeStyle = "white";
   context.strokeRect(x, y, outlineWidth, outlineHeight);
 
   let color = "green";
@@ -340,13 +344,29 @@ const renderHelpTexts = () => {
 
 const renderUi = () => {
   renderEnergyBar();
-
+  context.font = "1em Sans-serif";
+  context.fillStyle = "black";
+  context.globalAlpha = 0.1;
+  context.fillRect(0, 0, canvas.width / 4 + 100, 290);
+  context.globalAlpha = 0.9;
   if (player.ag) {
     context.fillStyle = "white";
-    context.font = "22px Sans-serif";
-
-    context.fillText("ANTI-GRAVITY", 50, 150);
+    context.fillText("ANTI-GRAVITY ACTIVATED", 50, 150);
+  } else {
+    context.fillStyle = "lightgray";
+    context.fillText("ANTI-GRAVITY OFF", 50, 150);
   }
+  context.fillText("[a]", 50, 170);
+
+  if (timeTraveling) {
+    context.fillStyle = "white";
+    context.fillText("TIME TRAVELING ACTIVATED", 50, 220);
+  } else {
+    context.fillStyle = "lightgray";
+    context.fillText("TIME TRAVELING OFF", 50, 220);
+  }
+  context.fillText("[space]", 50, 240);
+  context.globalAlpha = 1;
 };
 
 const createCloud = (y, z, opacity) => {
@@ -812,9 +832,12 @@ const resize = () => {
 
 const renderStartScreen = lastText => {
   renderTexts(
-    "Controls                   ",
-    "Hold A for anti-gravity    ",
-    "Hold SPACE for time travel ",
+    "You are lost in a metropolis in foreign planet.        ",
+    "You need to find your way to back home using portals!  ",
+    "",
+    "Controls                                             ",
+    "Hold A for anti-gravity and you will jump longer!    ",
+    "Hold SPACE for time travel (uses lots of energy!)    ",
     "",
     "",
     lastText
@@ -829,6 +852,7 @@ bindKeys(["enter"], () => {
     levelNumber = 1;
     startLevel(levelNumber);
   } else if (player && player.isDead()) {
+    playTune("main");
     startLevel(levelNumber);
   }
 });
