@@ -357,9 +357,9 @@ const renderEnergyBar = () => {
 
 const renderHelpTexts = () => {
   if (player && player.isDead()) {
-    renderInfoText("Press enter");
+    renderInfoText("Press enter to try again");
   } else if (gameFinished) {
-    renderTexts("CONGRATULATIONS!", "YOU FINISHED THE GAME!");
+    renderTexts("CONGRATULATIONS!", "YOU ARE ON YOUR WAY TO BACK HOME!");
   }
 };
 
