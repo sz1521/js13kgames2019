@@ -824,18 +824,6 @@ const renderTexts = (...texts) => {
 };
 
 const listenKeys = () => {
-  // Keys for debugging
-  bindKeys(["1"], () => {
-    camera.follow(player);
-  });
-  bindKeys(["2"], () => {
-    camera.zoomToLevel();
-  });
-  bindKeys(["n"], () => {
-    if (levelNumber < 4) levelNumber++;
-    else levelNumber = 1;
-    startLevel(levelNumber);
-  });
   bindKeys(["esc"], () => {
     levelNumber = 0;
     startLevel(levelNumber);
